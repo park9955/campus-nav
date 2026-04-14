@@ -53,7 +53,8 @@ javac -encoding UTF-8 ^
   -d "%PROJECT_DIR%\WEB-INF\classes" ^
   "%PROJECT_DIR%\WEB-INF\src\com\campus\nav\LoginServlet.java" ^
   "%PROJECT_DIR%\WEB-INF\src\com\campus\nav\LogoutServlet.java" ^
-  "%PROJECT_DIR%\WEB-INF\src\com\campus\nav\GuestServlet.java"
+  "%PROJECT_DIR%\WEB-INF\src\com\campus\nav\GuestServlet.java" ^
+  "%PROJECT_DIR%\WEB-INF\src\com\campus\nav\VisitorServlet.java"
 
 if %errorlevel% neq 0 (
     echo.

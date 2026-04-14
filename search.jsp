@@ -1,405 +1,537 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-         pageEncoding="UTF-8" session="true" %>
-<%
-    String loginUser = (String) session.getAttribute("loginUser");
-    String loginName = (String) session.getAttribute("loginName");
-    String loginRole = (String) session.getAttribute("loginRole");
-    if (loginUser == null) {
-        response.sendRedirect("/CampusNav/campuslogin.jsp");
-        return;
-    }
-    // 검색 파라미터
-    String keyword  = request.getParameter("keyword");
-    String type     = request.getParameter("type");
-    String status   = request.getParameter("status");
-    String location = request.getParameter("location");
-    if (keyword  == null) keyword  = "";
-    if (type     == null) type     = "";
-    if (status   == null) status   = "";
-    if (location == null) location = "";
-
-    // 역할별 홈 링크
-    String homeLink = "/main_student.jsp";
-    if      ("assistant".equals(loginRole)) homeLink = "/main_assistant.jsp";
-    else if ("professor".equals(loginRole)) homeLink = "/main_professor.jsp";
-    else if ("admin".equals(loginRole))     homeLink = "/main_admin.jsp";
-    else if ("guest".equals(loginRole))     homeLink = "/main_guest.jsp";
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" session="true" import="java.sql.*,java.util.*" %>
+<%  String loginUser=(String)session.getAttribute("loginUser"),loginName=(String)session.getAttribute("loginName"),loginRole=(String)session.getAttribute("loginRole");
+    if(loginUser==null){response.sendRedirect("/CampusNav/campuslogin.jsp");return;}
+    String keyword=request.getParameter("keyword");if(keyword==null)keyword="";
+    String type=request.getParameter("type");if(type==null)type="";
+    String status=request.getParameter("status");if(status==null)status="";
+    String pageStr=request.getParameter("page");int curPage=1,pageSize=20;try{curPage=Integer.parseInt(pageStr);}catch(Exception e){}if(curPage<1)curPage=1;
+    List<Map<String,String>> list=new ArrayList<>();int totalCount=0,totalPage=1;String dbErr="";
+    try{Class.forName("com.mysql.cj.jdbc.Driver");Connection conn=DriverManager.getConnection("jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true","root","1234");
+    StringBuilder w=new StringBuilder("WHERE 1=1 ");List<String> p=new ArrayList<>();
+    if(!keyword.isEmpty()){w.append("AND (item_name LIKE ? OR asset_no LIKE ? OR detail_location LIKE ? OR manage_dept LIKE ? OR model LIKE ?) ");for(int i=0;i<5;i++)p.add("%"+keyword+"%");}
+    if(!type.isEmpty()){w.append("AND asset_class=? ");p.add(type);}
+    if(!status.isEmpty()){w.append("AND asset_status LIKE ? ");p.add("%"+status+"%");}
+    PreparedStatement ps=conn.prepareStatement("SELECT COUNT(*) FROM assets "+w);for(int i=0;i<p.size();i++)ps.setString(i+1,p.get(i));ResultSet rs=ps.executeQuery();if(rs.next())totalCount=rs.getInt(1);rs.close();ps.close();
+    totalPage=(int)Math.ceil((double)totalCount/pageSize);if(totalPage<1)totalPage=1;
+    ps=conn.prepareStatement("SELECT asset_no,asset_class,item_name,model,detail_location,manage_dept,manager_name,asset_status FROM assets "+w+"ORDER BY reg_date DESC LIMIT ? OFFSET ?");
+    for(int i=0;i<p.size();i++)ps.setString(i+1,p.get(i));ps.setInt(p.size()+1,pageSize);ps.setInt(p.size()+2,(curPage-1)*pageSize);rs=ps.executeQuery();
+    while(rs.next()){Map<String,String> r=new LinkedHashMap<>();r.put("no",nvl(rs.getString("asset_no")));r.put("cls",nvl(rs.getString("asset_class")));r.put("name",nvl(rs.getString("item_name")));r.put("model",nvl(rs.getString("model")));r.put("loc",nvl(rs.getString("detail_location")));r.put("dept",nvl(rs.getString("manage_dept")));r.put("mgr",nvl(rs.getString("manager_name")));r.put("st",nvl(rs.getString("asset_status")));list.add(r);}
+    rs.close();ps.close();conn.close();}catch(Exception e){dbErr=e.getMessage();}
 %>
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT CampusNav — 자원 검색</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-    /* ── 새 UI 공통 스타일 ── */
-    body { background: linear-gradient(180deg,#f4f7fb 0%,#edf3f9 100%); font-family: "Noto Sans KR",sans-serif; color:#1f2937; min-height:100vh; }
-    /* 네비바 */
-    .topbar { background:linear-gradient(135deg,#0f172a 0%,#0f766e 100%); display:flex; align-items:center; justify-content:space-between; padding:.8rem 2rem; box-shadow:0 4px 16px rgba(15,23,42,.18); position:sticky; top:0; z-index:100; }
-    .brand { font-family:"Noto Sans KR",sans-serif; font-size:1.1rem; font-weight:800; color:#fff; text-decoration:none; display:flex; align-items:center; gap:.6rem; }
-    .brand span { color:#4ade80; }
-    .user-info,.nav-right { display:flex; align-items:center; gap:.75rem; }
-    .role-badge { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); color:#fff; border-radius:999px; padding:.2rem .85rem; font-size:.78rem; font-weight:600; }
-    .btn-out { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2); color:#fff; border-radius:10px; font-size:.8rem; padding:.35rem .9rem; cursor:pointer; transition:all .2s; text-decoration:none; display:inline-block; }
-    .btn-out:hover { background:rgba(255,255,255,.22); color:#fff; }
-    /* 컨텐츠 */
-    .content,.main-wrap,.page-wrap { max-width:1200px; margin:28px auto; padding:0 1.5rem; }
-    /* 히어로 */
-    .welcome-card,.hero-box { background:linear-gradient(135deg,#0f172a 0%,#0f766e 48%,#22c55e 100%); color:white; border-radius:26px; padding:36px 40px; box-shadow:0 18px 40px rgba(15,23,42,.16); position:relative; overflow:hidden; margin-bottom:1.5rem; }
-    .welcome-card::before,.hero-box::before { content:""; position:absolute; right:-60px; top:-50px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,.08); }
-    .welcome-card h2,.hero-title { font-size:1.7rem; font-weight:800; margin-bottom:.4rem; position:relative; z-index:1; color:#fff; }
-    .welcome-card h2 em { color:#4ade80; font-style:normal; }
-    .welcome-card p,.hero-desc { color:rgba(255,255,255,.88); font-size:.92rem; margin:0; position:relative; z-index:1; line-height:1.8; }
-    /* 검색 */
-    .search-card { background:#fff; border-radius:20px; padding:1.6rem; box-shadow:0 8px 24px rgba(15,23,42,.07); margin-bottom:1.5rem; }
-    .search-card h5 { font-size:.82rem; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:.06em; margin-bottom:1rem; }
-    .search-row { display:flex; gap:.6rem; }
-    .search-row input { flex:1; border:1.5px solid #e5e7eb; border-radius:12px; padding:.65rem 1rem; font-size:.9rem; outline:none; transition:border-color .2s,box-shadow .2s; background:#fafafa; }
-    .search-row input:focus { border-color:#0f766e; box-shadow:0 0 0 3px rgba(15,118,110,.12); background:#fff; }
-    .btn-search { background:linear-gradient(135deg,#0f766e,#16a34a); border:none; border-radius:12px; color:#fff; font-weight:700; padding:.65rem 1.4rem; cursor:pointer; font-size:.9rem; white-space:nowrap; }
-    /* 카드 */
-    .table-card,.card-box { background:#fff; border-radius:22px; box-shadow:0 8px 28px rgba(15,23,42,.08); overflow:hidden; margin-bottom:1.5rem; }
-    .card-head { background:linear-gradient(135deg,#0f172a,#0f766e); color:#fff; padding:1rem 1.4rem; font-size:.88rem; font-weight:700; display:flex; align-items:center; gap:.5rem; }
-    /* 테이블 */
-    table { width:100%; border-collapse:collapse; }
-    th { background:#f8fafc; font-size:.76rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.05em; padding:.85rem 1rem; border-bottom:1.5px solid #e8eef4; }
-    td { padding:.85rem 1rem; font-size:.88rem; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
-    tr:last-child td { border-bottom:none; }
-    tr:hover td { background:#f8fbff; }
-    /* 뱃지 */
-    .badge-use  { background:#dcfce7; color:#16a34a; border-radius:999px; padding:.22rem .75rem; font-size:.76rem; font-weight:700; }
-    .badge-busy { background:#fee2e2; color:#dc2626; border-radius:999px; padding:.22rem .75rem; font-size:.76rem; font-weight:700; }
-    .badge-fix  { background:#fef9c3; color:#ca8a04; border-radius:999px; padding:.22rem .75rem; font-size:.76rem; font-weight:700; }
-    /* 버튼 */
-    .btn-detail  { background:linear-gradient(135deg,#0f766e,#0ea5e9); color:#fff; border:none; border-radius:8px; padding:.3rem .85rem; font-size:.78rem; cursor:pointer; font-weight:600; }
-    .btn-reserve { background:linear-gradient(135deg,#0f172a,#1e3a5f); color:#fff; border:none; border-radius:8px; padding:.3rem .85rem; font-size:.78rem; cursor:pointer; font-weight:600; }
-    .btn-edit    { background:#e0f2fe; color:#0284c7; border:none; border-radius:8px; padding:.3rem .85rem; font-size:.78rem; cursor:pointer; font-weight:600; }
-    .btn-del     { background:#fee2e2; color:#dc2626; border:none; border-radius:8px; padding:.3rem .85rem; font-size:.78rem; cursor:pointer; font-weight:600; }
-    .btn-submit  { background:linear-gradient(135deg,#0f766e,#16a34a); color:#fff; border:none; border-radius:12px; padding:.7rem 1.8rem; font-size:.92rem; font-weight:700; cursor:pointer; width:100%; margin-top:.5rem; }
-    /* 통계 */
-    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
-    .stat-card { border-radius:20px; padding:22px; color:white; box-shadow:0 10px 24px rgba(15,23,42,.1); transition:transform .2s; }
-    .stat-card:hover { transform:translateY(-3px); }
-    .stat1{background:linear-gradient(135deg,#0ea5e9,#38bdf8);} .stat2{background:linear-gradient(135deg,#16a34a,#4ade80);}
-    .stat3{background:linear-gradient(135deg,#7c3aed,#a78bfa);} .stat4{background:linear-gradient(135deg,#ea580c,#fb923c);}
-    .stat-label{font-size:.88rem;opacity:.95;} .stat-num{font-size:1.9rem;font-weight:800;margin:8px 0 4px;} .stat-desc{font-size:.82rem;opacity:.9;}
-    /* 탭 */
-    .tab-row { display:flex; gap:.5rem; margin-bottom:1.2rem; flex-wrap:wrap; }
-    .tab-btn { padding:.55rem 1.2rem; border-radius:12px; border:1.5px solid #e5e7eb; background:#fff; color:#64748b; font-size:.85rem; font-weight:600; cursor:pointer; transition:all .2s; }
-    .tab-btn.active { background:linear-gradient(135deg,#0f766e,#16a34a); color:#fff; border-color:transparent; }
-    .tab-btn:hover:not(.active) { border-color:#0f766e; color:#0f766e; }
-    .tab-content { display:none; } .tab-content.active { display:block; }
-    /* 폼 */
-    .f-label { font-size:.78rem; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:.4rem; }
-    .f-input { width:100%; border:1.5px solid #e5e7eb; border-radius:12px; padding:.65rem 1rem; font-size:.9rem; outline:none; transition:border-color .2s; background:#fafafa; color:#1f2937; }
-    .f-input:focus { border-color:#0f766e; box-shadow:0 0 0 3px rgba(15,118,110,.12); background:#fff; }
-    .f-select { width:100%; border:1.5px solid #e5e7eb; border-radius:12px; padding:.65rem 1rem; font-size:.9rem; outline:none; background:#fafafa; }
-    /* 반응형 */
-    @media(max-width:768px){
-        .topbar{padding:.6rem 1rem;flex-wrap:wrap;gap:.4rem;} .content,.main-wrap,.page-wrap{padding:1rem;}
-        .welcome-card,.hero-box{padding:1.4rem 1.2rem;} .welcome-card h2,.hero-title{font-size:1.2rem;}
-        .search-row{flex-direction:column;} .btn-search{width:100%;}
-        .stat-grid{grid-template-columns:1fr 1fr;}
-        table,thead,tbody,th,td,tr{display:block;} thead{display:none;}
-        tr{background:#fff;border:1px solid #e8eef4;border-radius:12px;margin-bottom:.7rem;padding:.8rem 1rem;box-shadow:0 1px 4px rgba(0,0,0,.06);}
-        td{padding:.25rem 0;border:none;font-size:.84rem;display:flex;align-items:center;gap:.4rem;}
-        td::before{content:attr(data-label);font-size:.72rem;font-weight:600;color:#6b8aaa;text-transform:uppercase;min-width:70px;flex-shrink:0;}
-        td:last-child{margin-top:.4rem;gap:.4rem;justify-content:flex-end;}
-        .tab-btn{font-size:.78rem;padding:.45rem .8rem;flex:1;text-align:center;}
-    }
-    @media(max-width:480px){ .stat-grid{grid-template-columns:1fr 1fr;} }
+<%! private String nvl(String s){return s==null?"":s;}
+    private String esc(String s){if(s==null)return "";return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;");} %>
+<!DOCTYPE html><html lang="ko"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ICT CampusNav — 자원 검색</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700;9..40,800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --white:#ffffff; --bg:#f7f8fa; --bg2:#f0f2f5;
+  --line:#e4e7ed; --line2:#d0d5df;
+  --txt:#111827; --txt2:#4b5563; --txt3:#9ca3af;
+  --blue:#1a56db; --blue-lt:#eff4ff; --blue-md:#c7d7fd;
+  --teal:#0d9488; --teal-lt:#f0fdfa; --teal-md:#99f6e4;
+  --amber:#d97706; --amber-lt:#fffbeb;
+  --red:#dc2626; --red-lt:#fef2f2;
+  --green:#16a34a; --green-lt:#f0fdf4;
+  --purple:#7c3aed; --purple-lt:#f5f3ff;
+  --mono:'DM Mono',monospace;
+  --sans:'DM Sans','Noto Sans KR',sans-serif;
+  --r:12px; --r2:20px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --shadow2:0 2px 8px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15px;line-height:1.65;}
+
+/* TOPNAV */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--white);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--txt);letter-spacing:-.02em;text-decoration:none;}
+.logo-dot{width:32px;height:32px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.logo-dot img{width:100%;height:100%;object-fit:contain;}
+.logo em{color:var(--blue);font-style:normal;}
+.nav-right{display:flex;gap:8px;align-items:center;}
+.chip{font-family:var(--mono);font-size:12px;padding:6px 14px;border-radius:999px;background:var(--white);border:1px solid var(--line);color:var(--txt2);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;}
+.chip:hover{border-color:var(--blue);color:var(--blue);}
+.chip-blue{background:var(--blue);color:white;border-color:var(--blue);}
+.chip-blue:hover{background:#1647c0;color:white;}
+.role-chip{font-family:var(--mono);font-size:12px;padding:5px 13px;border-radius:6px;background:var(--blue-lt);border:1px solid var(--blue-md);color:var(--blue);}
+
+/* SHELL */
+.shell{max-width:1380px;margin:0 auto;padding:28px 28px 72px;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#0f172a 0%,#0d6147 50%,#16a34a 100%);border:none;border-radius:var(--r2);padding:40px 44px;margin-bottom:24px;box-shadow:0 8px 32px rgba(15,23,42,.25);display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center;position:relative;overflow:hidden;}
+.hero::after{content:'';position:absolute;right:0;top:0;bottom:0;width:280px;background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,rgba(22,163,74,.15) 100%);clip-path:polygon(15% 0%,100% 0%,100% 100%,0% 100%);z-index:0;pointer-events:none;}
+.hero-content{position:relative;z-index:1;}
+.hero-eyebrow{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.7);letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;}
+.hero-title{font-size:28px;font-weight:800;line-height:1.25;letter-spacing:-.03em;margin-bottom:10px;color:#ffffff;}
+.hero-title em{color:#4ade80;font-style:normal;}
+.hero-desc{color:rgba(255,255,255,.85);font-size:15px;line-height:1.85;max-width:560px;margin-bottom:18px;}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;}
+.tag{font-family:var(--mono);font-size:12px;padding:4px 11px;border-radius:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.9);}
+.tag b{color:var(--blue);}
+.hero-side{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:120px;}
+.hero-illo{font-size:56px;line-height:1;}
+
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--white);border:1px solid var(--line);border-radius:var(--r2);padding:22px 24px;box-shadow:var(--shadow);display:flex;align-items:flex-start;gap:16px;transition:box-shadow .2s,transform .2s;}
+.stat-card:hover{box-shadow:var(--shadow2);transform:translateY(-2px);}
+.stat-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.si-blue{background:var(--blue-lt);} .si-teal{background:var(--teal-lt);} .si-purple{background:var(--purple-lt);} .si-amber{background:var(--amber-lt);}
+.stat-label{font-size:12px;color:var(--txt3);font-family:var(--mono);margin-bottom:4px;}
+.stat-val{font-size:30px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:4px;}
+.sv-blue{color:var(--blue);} .sv-teal{color:var(--teal);} .sv-purple{color:var(--purple);} .sv-amber{color:var(--amber);}
+.stat-sub{font-size:12px;color:var(--txt3);line-height:1.5;}
+
+/* CARD */
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px;}
+.card-head{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;}
+.ch-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ch-title{font-size:15px;font-weight:700;color:var(--txt);}
+.ch-sub{font-size:12px;color:var(--txt3);margin-top:2px;}
+.card-body{padding:20px 24px;}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl thead th{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);padding:11px 14px;border-bottom:1.5px solid var(--line);font-weight:500;text-align:left;background:var(--bg);}
+.tbl tbody td{padding:13px 14px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle;}
+.tbl tbody tr:last-child td{border-bottom:none;}
+.tbl tbody tr:hover td{background:var(--bg);}
+.tbl tbody tr{cursor:pointer;transition:background .1s;}
+
+/* BADGES */
+.badge-ok{background:var(--green-lt);color:var(--green);border-radius:6px;padding:3px 9px;font-size:12px;font-weight:600;font-family:var(--mono);white-space:nowrap;}
+.badge-busy{background:var(--red-lt);color:var(--red);border-radius:6px;padding:3px 9px;font-size:12px;font-weight:600;font-family:var(--mono);white-space:nowrap;}
+.badge-warn{background:var(--amber-lt);color:var(--amber);border-radius:6px;padding:3px 9px;font-size:12px;font-weight:600;font-family:var(--mono);white-space:nowrap;}
+.badge-blue{background:var(--blue-lt);color:var(--blue);border-radius:6px;padding:3px 9px;font-size:12px;font-weight:600;font-family:var(--mono);}
+.badge-purple{background:var(--purple-lt);color:var(--purple);border-radius:6px;padding:3px 9px;font-size:12px;font-weight:600;font-family:var(--mono);}
+.badge-teal{background:var(--teal-lt);color:var(--teal);border-radius:6px;padding:3px 9px;font-size:12px;font-weight:600;font-family:var(--mono);}
+
+/* BUTTONS */
+.btn-prim{display:inline-block;text-align:center;background:var(--blue);color:white;border:none;border-radius:var(--r);padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;text-decoration:none;}
+.btn-prim:hover{background:#1647c0;color:white;}
+.btn-ghost{display:inline-block;text-align:center;background:transparent;color:var(--txt2);border:1.5px solid var(--line2);border-radius:var(--r);padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none;}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
+.btn-sm{font-family:var(--mono);font-size:12px;padding:6px 14px;border-radius:var(--r);border:1.5px solid var(--line2);background:var(--white);color:var(--txt2);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;}
+.btn-sm:hover{border-color:var(--blue);color:var(--blue);}
+.btn-danger{background:var(--red);color:white;border:none;border-radius:var(--r);padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;}
+.btn-danger:hover{background:#b91c1c;}
+
+/* FORM */
+.f-label{font-family:var(--mono);font-size:12px;color:var(--txt2);display:block;margin-bottom:6px;font-weight:500;}
+.f-input{width:100%;border:1.5px solid var(--line2);border-radius:var(--r);padding:11px 14px;font-size:14px;outline:none;background:var(--white);color:var(--txt);font-family:var(--sans);transition:border-color .15s;}
+.f-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-lt);}
+.f-select{width:100%;border:1.5px solid var(--line2);border-radius:var(--r);padding:11px 14px;font-size:14px;outline:none;background:var(--white);color:var(--txt);font-family:var(--sans);}
+
+/* TABS */
+.tab-bar{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:20px;}
+.tab-btn{font-family:var(--mono);font-size:13px;font-weight:500;padding:10px 18px;border:none;background:transparent;color:var(--txt3);cursor:pointer;transition:all .15s;border-bottom:2px solid transparent;margin-bottom:-2px;}
+.tab-btn:hover{color:var(--blue);}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* SEARCH BAR */
+.search-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.search-bar input{flex:1;min-width:180px;border:1.5px solid var(--line2);border-radius:var(--r);padding:10px 16px;font-size:14px;outline:none;background:var(--white);color:var(--txt);font-family:var(--sans);}
+.search-bar input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-lt);}
+.search-bar select{border:1.5px solid var(--line2);border-radius:var(--r);padding:10px 14px;font-size:13px;outline:none;background:var(--white);color:var(--txt);}
+
+/* PAGER */
+.pager{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:20px;}
+.pb{border:1.5px solid var(--line);background:var(--white);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;text-decoration:none;color:var(--txt2);font-family:var(--mono);transition:all .15s;}
+.pb:hover{border-color:var(--blue);color:var(--blue);}
+.pb.on{background:var(--blue);color:white;border-color:var(--blue);}
+
+/* LIST */
+.list-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s;}
+.list-item:last-child{border-bottom:none;}
+
+/* FLOW BOX */
+.flow-box{display:flex;align-items:center;gap:16px;background:var(--bg);border-radius:var(--r2);padding:20px 24px;flex-wrap:wrap;}
+.flow-card{flex:1;min-width:160px;background:var(--white);border-radius:var(--r);padding:16px 18px;border:1.5px solid var(--line);}
+.flow-card.from{border-color:#fca5a5;background:var(--red-lt);}
+.flow-card.to{border-color:#86efac;background:var(--green-lt);}
+.flow-label-sm{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;font-family:var(--mono);}
+.fl-from{color:var(--red);} .fl-to{color:var(--green);}
+.flow-dept{font-size:16px;font-weight:800;color:var(--txt);}
+.flow-loc{font-size:13px;color:var(--txt3);margin-top:4px;}
+
+/* INFO TABLE */
+.info-row{display:flex;padding:11px 0;border-bottom:1px solid var(--line);}
+.info-row:last-child{border-bottom:none;}
+.info-key{font-family:var(--mono);font-size:12px;color:var(--txt3);width:120px;flex-shrink:0;padding-top:2px;}
+.info-val{font-size:14px;color:var(--txt);font-weight:500;}
+
+/* ALERT */
+.alert-err{background:var(--red-lt);border:1px solid #fca5a5;border-radius:var(--r);color:var(--red);font-size:13px;padding:11px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.alert-ok{background:var(--green-lt);border:1px solid #86efac;border-radius:var(--r);color:var(--green);font-size:13px;padding:11px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.alert-warn{background:var(--amber-lt);border:1px solid #fde68a;border-radius:var(--r);color:var(--amber);font-size:13px;padding:11px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+/* TIME CHECK */
+.time-check{margin-top:8px;padding:10px 14px;border-radius:var(--r);font-size:13px;font-weight:600;display:none;}
+.time-ok{background:var(--green-lt);border:1px solid #86efac;color:var(--green);}
+.time-err{background:var(--red-lt);border:1px solid #fca5a5;color:var(--red);}
+
+/* RESPONSIVE */
+@media(max-width:1024px){.stat-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){
+  .topnav{padding:12px 16px;flex-wrap:wrap;gap:8px;}
+  .shell{padding:16px 16px 48px;}
+  .hero{grid-template-columns:1fr;padding:24px 20px;}
+  .hero::after{display:none;}
+  .hero-side{display:none;}
+  .stat-row{grid-template-columns:repeat(2,1fr);}
+  .search-bar{flex-direction:column;}
+  .search-bar input,.search-bar select{width:100%;}
+  .btn-prim,.btn-ghost{width:100%;display:block;}
+  .flow-box{flex-direction:column;}
+  table,thead,tbody,th,td,tr{display:block;}
+  thead{display:none;}
+  tr{background:var(--white);border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px;padding:12px 14px;}
+  td{padding:5px 0;border:none;font-size:13px;display:flex;align-items:center;gap:8px;}
+  td::before{content:attr(data-label);font-family:var(--mono);font-size:11px;color:var(--txt3);text-transform:uppercase;min-width:70px;flex-shrink:0;}
+}
+
+
+/* ── 글자 크기 상향 override ── */
+body { font-size: 15px !important; line-height: 1.7 !important; }
+.hero-title { font-size: 30px !important; }
+.hero-desc  { font-size: 15px !important; }
+.ch-title   { font-size: 16px !important; }
+.ch-sub     { font-size: 13px !important; }
+.stat-val   { font-size: 32px !important; }
+.stat-label { font-size: 13px !important; }
+.tbl thead th { font-size: 13px !important; }
+.tbl tbody td { font-size: 15px !important; }
+.btn-prim  { font-size: 15px !important; }
+.btn-ghost { font-size: 15px !important; }
+.btn-sm    { font-size: 13px !important; }
+.f-input   { font-size: 15px !important; }
+.f-label   { font-size: 13px !important; }
+.badge-ok, .badge-busy, .badge-warn, .badge-blue, .badge-purple, .badge-teal { font-size: 13px !important; }
+.chip      { font-size: 13px !important; }
+.role-chip { font-size: 13px !important; }
+.info-val  { font-size: 15px !important; }
+.logo      { font-size: 18px !important; }
+.pager .pb { font-size: 14px !important; }
+
+
+/* ══ 테이블 선명도 강화 ══ */
+.tbl { border: 1px solid var(--line2); border-radius: var(--r2); overflow: hidden; }
+.tbl thead th {
+    font-family: var(--mono);
+    font-size: 13px !important;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--txt) !important;
+    font-weight: 700 !important;
+    padding: 14px 16px !important;
+    border-bottom: 2px solid var(--blue-md) !important;
+    background: var(--blue-lt) !important;
+}
+.tbl tbody td {
+    padding: 14px 16px !important;
+    border-bottom: 1px solid var(--line) !important;
+    font-size: 15px !important;
+    vertical-align: middle;
+    color: var(--txt) !important;
+}
+.tbl tbody tr:hover td { background: var(--blue-lt) !important; }
+.tbl tbody tr { cursor: pointer; transition: background .12s; }
+
+/* ══ 검색바 하이라이트 ══ */
+.search-bar {
+    background: var(--white);
+    border: 2px solid var(--blue-md);
+    border-radius: var(--r2);
+    padding: 10px 12px;
+    box-shadow: 0 0 0 4px var(--blue-lt), var(--shadow);
+    gap: 10px !important;
+}
+.search-bar input {
+    border: none !important;
+    background: transparent !important;
+    font-size: 15px !important;
+    font-weight: 500;
+    color: var(--txt) !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.search-bar input::placeholder { color: var(--txt3); font-size: 14px; }
+.search-bar input:focus { box-shadow: none !important; border: none !important; }
+.search-bar select {
+    border: 1.5px solid var(--line2) !important;
+    border-radius: var(--r) !important;
+    padding: 9px 12px !important;
+    font-size: 14px !important;
+    background: var(--white) !important;
+    color: var(--txt) !important;
+    font-weight: 600;
+}
+.search-bar .btn-prim {
+    padding: 10px 22px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    border-radius: var(--r) !important;
+    white-space: nowrap;
+}
+
+/* ══ 배지 선명도 ══ */
+.badge-ok   { font-size: 13px !important; padding: 4px 11px !important; font-weight: 700 !important; }
+.badge-busy { font-size: 13px !important; padding: 4px 11px !important; font-weight: 700 !important; }
+.badge-warn { font-size: 13px !important; padding: 4px 11px !important; font-weight: 700 !important; }
+.badge-blue, .badge-purple, .badge-teal { font-size: 13px !important; padding: 4px 11px !important; font-weight: 700 !important; }
+
+/* ══ 페이저 선명도 ══ */
+.pager .pb {
+    font-size: 14px !important;
+    padding: 8px 14px !important;
+    font-weight: 600 !important;
+    border: 1.5px solid var(--line2) !important;
+}
+.pager .pb.on {
+    background: var(--blue) !important;
+    color: white !important;
+    border-color: var(--blue) !important;
+    font-weight: 700 !important;
+}
+
+/* ══ 카드 헤더 선명도 ══ */
+.ch-title { font-size: 16px !important; font-weight: 800 !important; }
+.ch-sub   { font-size: 13px !important; }
+
+/* ══ FOOTER ══ */
+.site-footer {
+    margin-top: 60px;
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+}
+.footer-inner {
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--txt);
+    text-decoration: none;
+    letter-spacing: -.02em;
+}
+.footer-logo em { color: var(--blue); font-style: normal; }
+.footer-logo-dot {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+}
+.footer-logo-dot img { width: 100%; height: 100%; object-fit: contain; }
+.footer-team {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--txt3);
+    line-height: 1.8;
+    text-align: center;
+}
+.footer-team strong { color: var(--blue); font-size: 13px; }
+.footer-copy {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--txt3);
+    text-align: right;
+    line-height: 1.8;
+}
+
+
+/* ══ 검색바 입력 포커스 하이라이트 (FOCUS GLOW) ══ */
+.search-bar:focus-within {
+    border-color: var(--blue) !important;
+    box-shadow: 0 0 0 4px rgba(26,86,219,.15), var(--shadow2) !important;
+}
+.search-bar input:focus::placeholder { color: var(--blue-md); }
+
+/* ══ 테이블 헤더 칼럼 구분선 ══ */
+.tbl thead th:not(:last-child) { border-right: 1px solid var(--blue-md); }
+.tbl tbody td:not(:last-child) { border-right: 1px solid var(--line); }
+.tbl thead th { white-space: nowrap; }
+
+/* ══ 테이블 행 번호/자산번호 선명도 ══ */
+.tbl tbody td:first-child {
+    font-family: var(--mono) !important;
+    font-size: 13px !important;
+    color: var(--txt3) !important;
+    font-weight: 600 !important;
+}
+
+/* ══ 검색 결과 카드 border 강화 ══ */
+.card { border: 1.5px solid var(--line2) !important; }
+.card-head { border-bottom: 1.5px solid var(--line2) !important; }
+
+/* ══ HERO 검색바 하이라이트 ══ */
+.search-hero {
+    background: var(--white);
+    border: 2px solid var(--blue-md);
+    border-radius: var(--r2);
+    padding: 6px 6px 6px 16px;
+    box-shadow: 0 0 0 4px var(--blue-lt), var(--shadow);
+    max-width: 560px;
+    gap: 6px !important;
+}
+.search-hero input {
+    border: none !important;
+    background: transparent !important;
+    font-size: 15px !important;
+    font-weight: 500;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 6px 0 !important;
+}
+.search-hero:focus-within {
+    border-color: var(--blue) !important;
+    box-shadow: 0 0 0 5px rgba(26,86,219,.18), var(--shadow2) !important;
+}
+.search-hero .btn-search-hero {
+    border-radius: var(--r) !important;
+    padding: 10px 20px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+}
+
+
+/* ══ Hero 다크그린 그라디언트 (교수님 요청) ══ */
+.hero {
+    background: linear-gradient(135deg, #0f172a 0%, #0d6147 50%, #16a34a 100%) !important;
+    border: none !important;
+    box-shadow: 0 8px 32px rgba(15,23,42,.25) !important;
+}
+.hero::after {
+    background: linear-gradient(135deg, rgba(255,255,255,.06) 0%, rgba(22,163,74,.15) 100%) !important;
+}
+.hero-eyebrow { color: rgba(255,255,255,.72) !important; }
+.hero-title   { color: #ffffff !important; }
+.hero-title em, .hero-title span { color: #4ade80 !important; }
+.hero-desc    { color: rgba(255,255,255,.85) !important; }
+.tag {
+    background: rgba(255,255,255,.15) !important;
+    border-color: rgba(255,255,255,.25) !important;
+    color: rgba(255,255,255,.9) !important;
+}
+.tag b { color: #4ade80 !important; }
+/* 검색 hero 안 input */
+.search-hero {
+    background: rgba(255,255,255,.12) !important;
+    border-color: rgba(255,255,255,.35) !important;
+    box-shadow: none !important;
+}
+.search-hero input {
+    color: #ffffff !important;
+    background: transparent !important;
+    border: none !important;
+}
+.search-hero input::placeholder { color: rgba(255,255,255,.55) !important; }
+.search-hero:focus-within {
+    background: rgba(255,255,255,.18) !important;
+    border-color: rgba(255,255,255,.6) !important;
+}
 
 </style>
-</head>
-<body>
-<div class="topbar">
-    <a href="/CampusNav/main_student.jsp" class="brand">
-        <img src="/CampusNav/images/logo.png" alt="ICT" style="height:30px;width:auto">
-        ICT Campus<span>Nav</span>
-    </a>
-    <div class="nav-right">
-        <a href="<%= request.getContextPath() + homeLink %>" class="btn-home">
-            <i class="bi bi-house me-1"></i>홈
-        </a>
-        <span style="color:#8bacc8;font-size:.82rem"><i class="bi bi-person-circle me-1"></i><%= loginName %></span>
-        <form action="/CampusNav/logout" method="post" style="margin:0">
-            <button type="submit" class="btn-out"><i class="bi bi-box-arrow-right me-1"></i>로그아웃</button>
-        </form>
-    </div>
-</div>
-
-<div class="content">
-  
-        <!-- 모바일 필터 토글 버튼 -->
-        <button class="filter-toggle" id="filterToggle"
-                style="display:none;width:100%;margin-bottom:.8rem;padding:.65rem;
-                       background:linear-gradient(135deg,#0f172a,#0f766e);border:1px solid rgba(0,194,168,.3);
-                       border-radius:10px;color:#fff;font-size:.88rem;cursor:pointer;
-                       align-items:center;justify-content:center;gap:.5rem;">
-            <i class="bi bi-funnel"></i> 필터 열기/닫기
-        </button>
-
-        <div class="layout">
-
-    <!-- 필터 사이드바 -->
-    <aside>
-      <div class="filter-box">
-        <div class="filter-title"><i class="bi bi-funnel-fill" style="color:#0f766e"></i>필터</div>
-
-        <form method="get" action="/CampusNav/search.jsp" id="filterForm">
-
-          <div class="filter-section">
-            <label>자원 유형</label>
-            <select name="type">
-              <option value="">전체</option>
-              <option value="hardware"  <%= "hardware".equals(type)  ? "selected" : "" %>>하드웨어</option>
-              <option value="software"  <%= "software".equals(type)  ? "selected" : "" %>>소프트웨어</option>
-              <option value="room"      <%= "room".equals(type)      ? "selected" : "" %>>강의실/공간</option>
-              <option value="equipment" <%= "equipment".equals(type) ? "selected" : "" %>>장비</option>
-              <option value="etc"       <%= "etc".equals(type)       ? "selected" : "" %>>기타</option>
-            </select>
-          </div>
-
-          <div class="filter-section">
-            <label>활용여부</label>
-            <div class="check-list">
-              <label class="check-item">
-                <input type="checkbox" name="status" value="available" <%= status.contains("available") ? "checked" : "" %>>
-                사용가능
-              </label>
-              <label class="check-item">
-                <input type="checkbox" name="status" value="busy" <%= status.contains("busy") ? "checked" : "" %>>
-                사용중
-              </label>
-              <label class="check-item">
-                <input type="checkbox" name="status" value="repair" <%= status.contains("repair") ? "checked" : "" %>>
-                점검중
-              </label>
-            </div>
-          </div>
-
-          <div class="filter-section">
-            <label>건물</label>
-            <select name="location">
-              <option value="">전체</option>
-              <option value="eng"    <%= "eng".equals(location)    ? "selected" : "" %>>공학관</option>
-              <option value="lib"    <%= "lib".equals(location)    ? "selected" : "" %>>도서관</option>
-              <option value="hum"    <%= "hum".equals(location)    ? "selected" : "" %>>인문관</option>
-              <option value="biz"    <%= "biz".equals(location)    ? "selected" : "" %>>경영관</option>
-              <option value="server" <%= "server".equals(location) ? "selected" : "" %>>전산실</option>
-              <option value="student"<%= "student".equals(location)? "selected" : "" %>>학생회관</option>
-            </select>
-          </div>
-
-          <input type="hidden" name="keyword" id="hiddenKeyword" value="<%= keyword %>">
-
-          <button type="submit" class="btn-filter"><i class="bi bi-funnel me-1"></i>필터 적용</button>
-          <button type="button" class="btn-reset" onclick="resetFilter()"><i class="bi bi-arrow-counterclockwise me-1"></i>초기화</button>
-
-        </form>
-      </div>
-    </aside>
-
-    <!-- 결과 영역 -->
-    <main>
-      <div class="result-box">
-        <div class="result-head">
-          <span><i class="bi bi-grid-3x3-gap me-1"></i>자원 목록</span>
-          <span class="result-count">총 6건 (샘플 데이터)</span>
-        </div>
-
-        <!-- 검색바 -->
-        <div class="search-top">
-          <form method="get" action="/CampusNav/search.jsp" class="search-row">
-            <input type="hidden" name="type"     value="<%= type %>">
-            <input type="hidden" name="status"   value="<%= status %>">
-            <input type="hidden" name="location" value="<%= location %>">
-            <input type="text" name="keyword" value="<%= keyword %>"
-                   placeholder="자원명, 위치, 번호, 관리자명 검색...">
-            <button type="submit" class="btn-search"><i class="bi bi-search me-1"></i>검색</button>
-          </form>
-        </div>
-
-        <!-- 적용된 필터 태그 -->
-        <% if (!keyword.isEmpty() || !type.isEmpty() || !status.isEmpty() || !location.isEmpty()) { %>
-        <div class="tag-row">
-          <% if (!keyword.isEmpty()) { %>
-            <span class="tag"><i class="bi bi-search"></i>"<%= keyword %>" <button onclick="clearParam('keyword')">×</button></span>
-          <% } %>
-          <% if (!type.isEmpty()) { %>
-            <span class="tag"><i class="bi bi-tag"></i><%= type %> <button onclick="clearParam('type')">×</button></span>
-          <% } %>
-          <% if (!status.isEmpty()) { %>
-            <span class="tag"><i class="bi bi-circle-fill" style="font-size:.5rem"></i><%= status %> <button onclick="clearParam('status')">×</button></span>
-          <% } %>
-          <% if (!location.isEmpty()) { %>
-            <span class="tag"><i class="bi bi-geo-alt"></i><%= location %> <button onclick="clearParam('location')">×</button></span>
-          <% } %>
-        </div>
-        <% } %>
-
-        <!-- 정렬 -->
-        <div class="sort-row">
-          <span class="sort-label">정렬:</span>
-          <button class="sort-btn active">최신순</button>
-          <button class="sort-btn">이름순</button>
-          <button class="sort-btn">위치순</button>
-          <button class="sort-btn">사용가능 우선</button>
-        </div>
-
-        <!-- 테이블 -->
-        <table>
-          <thead>
-            <tr>
-              <th>번호</th>
-              <th>자원명</th>
-              <th>유형</th>
-              <th>위치 <small style="font-weight:400;color:#8bacc8">(클릭시 상세)</small></th>
-              <th>활용여부</th>
-              <th>관리자</th>
-              <th>전화번호</th>
-              <th>상세/예약</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr onclick="goDetail('001')">
-              <td data-label="번호">001</td>
-              <td data-label="자원명"><strong>노트북 Dell XPS</strong><br><small style="color:#6b8aaa">하드웨어</small></td>
-              <td data-label="유형"><span style="background:#e0f2fe;color:#0284c7;border-radius:5px;padding:.1rem .5rem;font-size:.74rem">HW</span></td>
-              <td data-label="위치"><a class="loc-link" onclick="event.stopPropagation()"><i class="bi bi-geo-alt"></i> 공학관 301호</a></td>
-              <td data-label="활용"><span class="badge-use">사용가능</span></td>
-              <td data-label="관리자">김조교</td><td>010-1234-5678</td>
-              <td onclick="event.stopPropagation()">
-                <button class="btn-detail me-1" onclick="goDetail('001')">상세</button>
-                <button class="btn-reserve" onclick="goReserve('001')">예약</button>
-              </td>
-            </tr>
-            <tr onclick="goDetail('002')">
-              <td data-label="번호">002</td>
-              <td data-label="자원명"><strong>3D 프린터</strong><br><small style="color:#6b8aaa">장비</small></td>
-              <td data-label="유형"><span style="background:#fce7f3;color:#9d174d;border-radius:5px;padding:.1rem .5rem;font-size:.74rem">장비</span></td>
-              <td data-label="위치"><a class="loc-link" onclick="event.stopPropagation()"><i class="bi bi-geo-alt"></i> 공학관 205호</a></td>
-              <td data-label="활용"><span class="badge-busy">사용중</span></td>
-              <td data-label="관리자">이조교</td><td>010-2345-6789</td>
-              <td onclick="event.stopPropagation()">
-                <button class="btn-detail me-1" onclick="goDetail('002')">상세</button>
-                <button class="btn-reserve" disabled>예약</button>
-              </td>
-            </tr>
-            <tr onclick="goDetail('003')">
-              <td data-label="번호">003</td>
-              <td data-label="자원명"><strong>강의실 프로젝터</strong><br><small style="color:#6b8aaa">장비</small></td>
-              <td data-label="유형"><span style="background:#fce7f3;color:#9d174d;border-radius:5px;padding:.1rem .5rem;font-size:.74rem">장비</span></td>
-              <td data-label="위치"><a class="loc-link" onclick="event.stopPropagation()"><i class="bi bi-geo-alt"></i> 인문관 101호</a></td>
-              <td data-label="활용"><span class="badge-use">사용가능</span></td>
-              <td data-label="관리자">박관리</td><td>010-3456-7890</td>
-              <td onclick="event.stopPropagation()">
-                <button class="btn-detail me-1" onclick="goDetail('003')">상세</button>
-                <button class="btn-reserve" onclick="goReserve('003')">예약</button>
-              </td>
-            </tr>
-            <tr onclick="goDetail('004')">
-              <td data-label="번호">004</td>
-              <td data-label="자원명"><strong>서버 랙 A</strong><br><small style="color:#6b8aaa">하드웨어</small></td>
-              <td data-label="유형"><span style="background:#e0f2fe;color:#0284c7;border-radius:5px;padding:.1rem .5rem;font-size:.74rem">HW</span></td>
-              <td data-label="위치"><a class="loc-link" onclick="event.stopPropagation()"><i class="bi bi-geo-alt"></i> 전산실 B01</a></td>
-              <td data-label="활용"><span class="badge-fix">점검중</span></td>
-              <td data-label="관리자">최조교</td><td>010-4567-8901</td>
-              <td onclick="event.stopPropagation()">
-                <button class="btn-detail me-1" onclick="goDetail('004')">상세</button>
-                <button class="btn-reserve" disabled>예약</button>
-              </td>
-            </tr>
-            <tr onclick="goDetail('005')">
-              <td data-label="번호">005</td>
-              <td data-label="자원명"><strong>MATLAB R2024</strong><br><small style="color:#6b8aaa">소프트웨어</small></td>
-              <td data-label="유형"><span style="background:#ede9fe;color:#7c3aed;border-radius:5px;padding:.1rem .5rem;font-size:.74rem">SW</span></td>
-              <td data-label="위치"><a class="loc-link" onclick="event.stopPropagation()"><i class="bi bi-geo-alt"></i> 공학관 401호</a></td>
-              <td data-label="활용"><span class="badge-use">사용가능</span></td>
-              <td data-label="관리자">이교수</td><td>010-5678-9012</td>
-              <td onclick="event.stopPropagation()">
-                <button class="btn-detail me-1" onclick="goDetail('005')">상세</button>
-                <button class="btn-reserve" onclick="goReserve('005')">예약</button>
-              </td>
-            </tr>
-            <tr onclick="goDetail('006')">
-              <td data-label="번호">006</td>
-              <td data-label="자원명"><strong>세미나실</strong><br><small style="color:#6b8aaa">강의실/공간</small></td>
-              <td data-label="유형"><span style="background:#dcfce7;color:#16a34a;border-radius:5px;padding:.1rem .5rem;font-size:.74rem">공간</span></td>
-              <td data-label="위치"><a class="loc-link" onclick="event.stopPropagation()"><i class="bi bi-geo-alt"></i> 학생회관 305호</a></td>
-              <td data-label="활용"><span class="badge-use">사용가능</span></td>
-              <td data-label="관리자">한관리</td><td>010-6789-0123</td>
-              <td onclick="event.stopPropagation()">
-                <button class="btn-detail me-1" onclick="goDetail('006')">상세</button>
-                <button class="btn-reserve" onclick="goReserve('006')">예약</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- 페이지네이션 -->
-        <div class="pagination-wrap">
-          <button class="pg-btn"><i class="bi bi-chevron-left"></i></button>
-          <button class="pg-btn active">1</button>
-          <button class="pg-btn">2</button>
-          <button class="pg-btn">3</button>
-          <button class="pg-btn"><i class="bi bi-chevron-right"></i></button>
-        </div>
-      </div>
-    </main>
+</head><body>
+<div class="topnav">
+  <a href="/CampusNav/main_<%= loginRole %>.jsp" class="logo"><span class="logo-dot"><img src="/CampusNav/images/logo.png" alt="ICT"></span>ICT Campus<em>Nav</em></a>
+  <div class="nav-right">
+    <span style="font-family:var(--mono);font-size:13px;color:var(--txt2)"><i class="bi bi-person-circle me-1"></i><%= loginName %></span>
+    <span class="role-chip"><%= "student".equals(loginRole)?"학부생":"assistant".equals(loginRole)?"조교":"professor".equals(loginRole)?"교수":"admin".equals(loginRole)?"관리자":"게스트" %></span>
+    <a href="/CampusNav/main_<%= loginRole %>.jsp" class="chip"><i class="bi bi-house me-1"></i>홈</a>
+    <form action="/CampusNav/logout" method="post" style="margin:0"><button type="submit" class="chip"><i class="bi bi-box-arrow-right me-1"></i>로그아웃</button></form>
   </div>
 </div>
+<div class="shell">
+<div class="hero"><div class="hero-content">
+  <div class="hero-eyebrow">ICT CampusNav · 자원 검색</div>
+  <div class="hero-title">자산 <em><%= String.format("%,d",totalCount) %>건</em> 검색됨</div>
+  <div class="hero-desc">자산번호, 품목명, 위치, 관리부서로 검색하세요.</div>
+  <form method="get" action="/CampusNav/search.jsp"><div class="search-bar">
+    <input type="text" name="keyword" value="<%= keyword %>" placeholder="자산번호, 품목명, 위치 검색...">
+    <select name="type"><option value="">전체 분류</option><option value="공기구비품" <%= "공기구비품".equals(type)?"selected":"" %>>공기구비품</option><option value="집기비품" <%= "집기비품".equals(type)?"selected":"" %>>집기비품</option><option value="무형고정자산" <%= "무형고정자산".equals(type)?"selected":"" %>>소프트웨어</option></select>
+    <select name="status"><option value="">전체 상태</option><option value="사용중" <%= "사용중".equals(status)?"selected":"" %>>사용중</option><option value="사용가능" <%= "사용가능".equals(status)?"selected":"" %>>사용가능</option></select>
+    <button type="submit" class="btn-prim" style="width:auto;white-space:nowrap"><i class="bi bi-search me-1"></i>검색</button>
+    <a href="/CampusNav/search.jsp" class="btn-ghost" style="width:auto;white-space:nowrap">초기화</a>
+  </div></form>
+</div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-function goDetail(id) {
-    location.href = '/CampusNav/detail.jsp?id=' + id;
-}
-function goReserve(id) {
-    location.href = '/CampusNav/reserve.jsp?id=' + id;
-}
-function resetFilter() {
-    location.href = '/CampusNav/search.jsp';
-}
-function clearParam(param) {
-    var url = new URL(location.href);
-    url.searchParams.delete(param);
-    location.href = url.toString();
-}
-document.querySelectorAll('.sort-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.sort-btn').forEach(function(b){ b.classList.remove('active'); });
-        this.classList.add('active');
-    });
-});
+<% if(!dbErr.isEmpty()){%><div class="alert-err"><i class="bi bi-exclamation-triangle me-1"></i><%= dbErr %></div><%}%>
 
-    // 모바일 필터 토글
-    var filterToggle = document.getElementById('filterToggle');
-    var filterBody   = document.querySelector('.filter-box');
-    if (filterToggle && filterBody) {
-        function checkMobile() {
-            if (window.innerWidth <= 768) {
-                filterToggle.style.display = 'flex';
-                filterBody.classList.add('filter-body');
-            } else {
-                filterToggle.style.display = 'none';
-                filterBody.classList.remove('filter-body');
-                filterBody.classList.remove('open');
-            }
-        }
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        filterToggle.addEventListener('click', function() {
-            filterBody.classList.toggle('open');
-            this.innerHTML = filterBody.classList.contains('open')
-                ? '<i class="bi bi-funnel-fill"></i> 필터 닫기'
-                : '<i class="bi bi-funnel"></i> 필터 열기/닫기';
-        });
-    }
+<div class="card"><div class="card-head"><div class="ch-icon si-blue">📋</div><div><div class="ch-title">검색 결과</div><div class="ch-sub">총 <%= String.format("%,d",totalCount) %>건 · 페이지 <%= curPage %>/<%= totalPage %></div></div></div>
+<% if(list.isEmpty()){%>
+<div style="text-align:center;padding:48px;color:var(--txt3)"><i class="bi bi-search" style="font-size:32px;display:block;margin-bottom:12px;opacity:.3"></i><div style="font-size:15px">검색 결과가 없습니다.</div><a href="/CampusNav/search.jsp" style="color:var(--blue);font-size:13px">전체 보기</a></div>
+<%}else{%>
+<div style="overflow-x:auto"><table class="tbl">
+<thead><tr><th>자산번호</th><th>분류</th><th>품목명</th><th>위치</th><th>관리부서</th><th>관리자</th><th>상태</th><th>관리</th></tr></thead>
+<tbody>
+<% for(Map<String,String> a:list){
+   String st=a.get("st");String bc=st.contains("사용중")?"badge-busy":st.contains("점검")?"badge-warn":"badge-ok";
+   String cls=a.get("cls");String cl=cls.equals("무형고정자산")?"badge-purple":cls.equals("집기비품")?"badge-blue":"badge-teal";
+   String clsL=cls.equals("무형고정자산")?"SW":cls.equals("집기비품")?"집기":"공기구"; %>
+<tr onclick="location.href='/CampusNav/detail.jsp?id=<%= a.get("no") %>'">
+  <td data-label="자산번호"><span style="font-family:var(--mono);font-size:12px;color:var(--txt3)"><%= a.get("no") %></span></td>
+  <td data-label="분류"><span class="<%= cl %>"><%= clsL %></span></td>
+  <td data-label="품목명"><div style="font-weight:700;font-size:14px"><%= a.get("name") %></div><div style="font-size:12px;color:var(--txt3)"><%= a.get("model") %></div></td>
+  <td data-label="위치"><span style="font-size:13px;color:var(--txt2)"><i class="bi bi-geo-alt" style="color:var(--teal)"></i> <%= a.get("loc") %></span></td>
+  <td data-label="관리부서"><span style="font-size:13px;color:var(--txt2)"><%= a.get("dept") %></span></td>
+  <td data-label="관리자"><span style="font-size:13px"><%= a.get("mgr") %></span></td>
+  <td data-label="상태"><span class="<%= bc %>"><%= st.isEmpty()?"정보없음":st %></span></td>
+  <td data-label="관리" onclick="event.stopPropagation()">
+    <a href="/CampusNav/detail.jsp?id=<%= a.get("no") %>" class="btn-sm me-1">상세</a>
+    <% if(!"guest".equals(loginRole)){%><a href="/CampusNav/reserve.jsp?id=<%= a.get("no") %>" class="btn-sm">예약</a><%}%>
+                    <% if("admin".equals(loginRole)||"assistant".equals(loginRole)||"professor".equals(loginRole)){%>
+                    <a href="/CampusNav/asset_manage.jsp?keyword=<%= a.get("no") %>" class="btn-sm" style="border-color:var(--amber);color:var(--amber)">수정/삭제</a>
+                    <%}%>
+  </td>
+</tr>
+<% }%>
+</tbody></table></div>
+<div class="pager">
+  <%  String encKw=java.net.URLEncoder.encode(keyword,"UTF-8"),encType=java.net.URLEncoder.encode(type,"UTF-8"),encSt=java.net.URLEncoder.encode(status,"UTF-8"); %>
+  <%if(curPage>1){%><a href="/CampusNav/search.jsp?keyword=<%= encKw %>&type=<%= encType %>&status=<%= encSt %>&page=<%= curPage-1 %>" class="pb">‹</a><%}%>
+  <%int sp=Math.max(1,curPage-4),ep=Math.min(totalPage,curPage+4);for(int p2=sp;p2<=ep;p2++){%>
+  <a href="/CampusNav/search.jsp?keyword=<%= encKw %>&type=<%= encType %>&status=<%= encSt %>&page=<%= p2 %>" class="pb <%=p2==curPage?"on":""%>"><%= p2 %></a>
+  <%}%>
+  <%if(curPage<totalPage){%><a href="/CampusNav/search.jsp?keyword=<%= encKw %>&type=<%= encType %>&status=<%= encSt %>&page=<%= curPage+1 %>" class="pb">›</a><%}%>
+</div>
+<%}%>
+</div>
+</div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ══ SITE FOOTER ══ -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <a href="/CampusNav/campuslogin.jsp" class="footer-logo">
+      <span class="footer-logo-dot"><img src="/CampusNav/images/logo.png" alt="ICT"></span>
+      ICT Campus<em>Nav</em>
+    </a>
+    <div class="footer-team">
+      <strong>Made by AI 소프트웨어학과</strong><br>
+      박승순 &nbsp;&middot;&nbsp; 권동해 &nbsp;&middot;&nbsp; 원태연 &nbsp;&middot;&nbsp; 이수혁
+    </div>
+    <div class="footer-copy">
+      ICT폴리텍대학<br>
+      교내 자원 내비게이션 시스템<br>
+      Copyright &copy; 2026 ICT CampusNav. All rights reserved.
+    </div>
+  </div>
+</footer>
 
-</script>
-</body>
-</html>
+</body></html>

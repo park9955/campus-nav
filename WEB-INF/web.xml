@@ -52,6 +52,17 @@
         <url-pattern>/guest</url-pattern>
     </servlet-mapping>
 
+
+    <!-- VisitorServlet (외부인) -->
+    <servlet>
+        <servlet-name>VisitorServlet</servlet-name>
+        <servlet-class>com.campus.nav.VisitorServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>VisitorServlet</servlet-name>
+        <url-pattern>/visitor</url-pattern>
+    </servlet-mapping>
+
     <!-- 시작 페이지 -->
     <welcome-file-list>
         <welcome-file>campuslogin.jsp</welcome-file>

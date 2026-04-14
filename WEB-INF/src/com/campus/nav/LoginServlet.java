@@ -15,7 +15,8 @@ public class LoginServlet extends HttpServlet {
         { "assist1",  "asst1234", "김조교",   "assistant" },
         { "prof1",    "prof1234", "이교수",   "professor" },
         { "admin",    "1234",     "박관리자", "admin"     },
-        { "guest1",   "guest123", "방문객",   "guest"     }
+        { "guest1",   "guest123", "방문객",   "guest"     },
+        { "visitor1", "visit123", "외부방문자", "visitor" }
     };
 
     @Override
@@ -27,7 +28,7 @@ public class LoginServlet extends HttpServlet {
             goToRolePage((String) session.getAttribute("loginRole"), resp);
             return;
         }
-        req.getRequestDispatcher("/campuslogin.jsp").forward(req, resp);
+        req.getRequestDispatcher("/CampusNav/campuslogin.jsp").forward(req, resp);
     }
 
     @Override
@@ -53,9 +54,9 @@ public class LoginServlet extends HttpServlet {
         }
 
         if (found == null) {
-            req.setAttribute("errorMsg", "아이디 또는 비밀번호가 올바르지 않습니다.");
+            req.setAttribute("errorMsg", "아이디, 비밀번호가 틀렸습니다.");
             req.setAttribute("prevId", userId);
-            req.getRequestDispatcher("/campuslogin.jsp").forward(req, resp);
+            req.getRequestDispatcher("/CampusNav/campuslogin.jsp").forward(req, resp);
             return;
         }
 
@@ -91,6 +92,8 @@ public class LoginServlet extends HttpServlet {
             resp.sendRedirect("/CampusNav/main_professor.jsp");
         } else if ("admin".equals(role)) {
             resp.sendRedirect("/CampusNav/main_admin.jsp");
+        } else if ("visitor".equals(role)) {
+            resp.sendRedirect("/CampusNav/main_visitor.jsp");
         } else {
             resp.sendRedirect("/CampusNav/main_guest.jsp");
         }
