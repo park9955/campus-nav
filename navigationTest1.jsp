@@ -333,6 +333,218 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
 .flow-sub{font-size:11px;color:var(--txt3);font-family:var(--mono);margin-top:2px;}
 .flow-arrow{text-align:center;color:var(--txt3);font-size:12px;margin:-2px 0;}
 @keyframes popIn{from{opacity:0;transform:scale(.9) translateY(6px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+/* ──────────────────────────────────────────────────────────────────── */
+/* RESPONSIVE MOBILE */
+/* ──────────────────────────────────────────────────────────────────── */
+
+@media(max-width:768px){
+  .topnav{padding:10px 14px;gap:6px;}
+  .logo{font-size:15px;gap:6px;}
+  .logo-dot{width:28px;height:28px;}
+  .nav-right{gap:6px;flex-wrap:wrap;}
+  .chip{font-size:11px;padding:5px 11px;}
+  .role-chip{font-size:11px;padding:4px 11px;}
+
+  .shell{padding:16px 14px 48px;}
+  .page-title{font-size:1.2rem;gap:8px;}
+  .page-title .icon-box{width:32px;height:32px;font-size:15px;}
+  .page-sub{font-size:12px;padding-left:40px;}
+
+  .card{margin-bottom:14px;}
+  .card-head{padding:12px 16px;gap:8px;}
+  .ch-icon{width:30px;height:30px;font-size:14px;}
+  .ch-title{font-size:13px;}
+  .ch-sub{font-size:10px;}
+  .card-body{padding:14px 16px;}
+
+  .f-label{font-size:11px;margin-bottom:4px;}
+  .f-select{padding:7px 10px;font-size:12px;}
+
+  .btn-prim,.btn-ghost{padding:9px 14px;font-size:12px;width:100%;min-height:44px;}
+  .btn-sm{padding:4px 8px;font-size:10px;}
+
+  .admin-banner{padding:8px 11px;font-size:11px;}
+
+  .loc-card{padding:9px 11px;margin-bottom:6px;font-size:12px;}
+  .loc-card-name{font-size:12px;}
+  .loc-card-bldg{font-size:10px;}
+
+  .photo-wrap img{height:100px;}
+  .photo-no{height:60px;font-size:11px;}
+  .photo-caption{font-size:10px;padding:5px 9px;}
+
+  .result-box{padding:9px 11px;font-size:11px;}
+
+  #floorplanImg{height:280px;}
+  #routeCanvas,#markerCanvas{height:280px;}
+
+  .map-toolbar{top:8px;left:8px;gap:4px;}
+  .tb-btn{padding:4px 9px;font-size:11px;}
+
+  .map-overlay{padding:6px 12px;font-size:11px;}
+  .ov-badge{padding:2px 7px;font-size:10px;}
+
+  .wp-item{padding:4px 7px;gap:5px;font-size:11px;}
+  .wp-num{width:16px;height:16px;font-size:8px;}
+  .wp-coord{font-size:9px;}
+  .wp-del{width:18px;height:18px;font-size:11px;}
+
+  .route-item{padding:9px 11px;font-size:11px;margin-bottom:5px;}
+
+  .modal-box{max-width:95vw;max-height:90vh;}
+  .modal-hd{padding:12px 16px;}
+  .modal-title{font-size:13px;}
+  .modal-close{width:28px;height:28px;font-size:13px;}
+  .modal-body{padding:12px 16px;}
+
+  .floor-tabs{gap:5px;}
+  .floor-tab{font-size:12px;padding:6px 14px;}
+
+  .floor-placeholder{height:180px;gap:6px;}
+  .floor-placeholder i{font-size:32px;}
+
+  .loc-card-header{padding:12px 16px;font-size:13px;}
+  .building-header{padding:9px 16px;font-size:12px;}
+  .b-icon{width:24px;height:24px;font-size:11px;}
+  .b-title{font-size:12px;}
+  .b-count{font-size:9px;}
+
+  .place-row{padding:7px 12px 7px 42px;font-size:11px;}
+  .place-name{font-size:11px;}
+  .place-floor{font-size:9px;padding:1px 4px;}
+  .place-btn{font-size:10px;padding:3px 7px;}
+
+  .flow-step{padding:8px 10px;gap:8px;}
+  .flow-num{width:20px;height:20px;font-size:10px;}
+  .flow-title{font-size:11px;}
+  .flow-sub{font-size:10px;}
+}
+
+@media(max-width:640px){
+  .topnav{padding:9px 12px;}
+  .logo{font-size:14px;}
+  .logo-dot{width:26px;height:26px;}
+
+  .shell{padding:14px 12px 40px;}
+  .page-title{font-size:1.1rem;}
+  .page-title .icon-box{width:30px;height:30px;font-size:14px;}
+  .page-sub{font-size:11px;padding-left:38px;}
+
+  .admin-banner{margin-bottom:10px;}
+
+  .modal-box{max-width:98vw;}
+  .modal-body img{max-height:70vh;}
+}
+
+@media(max-width:480px){
+  .topnav{padding:8px 10px;}
+  .logo{font-size:13px;gap:5px;}
+  .logo-dot{width:24px;height:24px;}
+  .nav-right{font-size:11px;}
+  .chip{font-size:10px;padding:4px 9px;border-radius:6px;}
+  .role-chip{font-size:10px;padding:3px 9px;border-radius:5px;}
+
+  .shell{padding:12px 10px 36px;}
+  .page-title{font-size:1rem;gap:6px;margin-bottom:2px;}
+  .page-title .icon-box{width:28px;height:28px;font-size:13px;border-radius:8px;}
+  .page-sub{font-size:10px;padding-left:36px;margin-bottom:12px;}
+
+  .card{margin-bottom:12px;}
+  .card-head{padding:10px 12px;gap:6px;}
+  .ch-icon{width:28px;height:28px;font-size:13px;border-radius:7px;}
+  .ch-title{font-size:12px;font-weight:700;}
+  .ch-sub{font-size:9px;}
+  .card-body{padding:12px 12px;}
+
+  .f-label{font-size:10px;margin-bottom:3px;}
+  .f-select{padding:6px 9px;font-size:11px;border-radius:8px;}
+
+  .btn-prim,.btn-ghost{padding:8px 12px;font-size:11px;min-height:42px;border-radius:8px;}
+  .btn-sm{padding:3px 7px;font-size:9px;border-radius:5px;}
+
+  .admin-banner{padding:7px 9px;font-size:10px;border-radius:7px;}
+  .admin-banner i{font-size:14px;}
+
+  .loc-card{padding:8px 9px;margin-bottom:5px;font-size:11px;border-radius:7px;}
+  .loc-card-name{font-size:11px;}
+  .loc-card-bldg{font-size:9px;}
+
+  .photo-wrap{border-radius:8px;border:1px solid var(--line);}
+  .photo-wrap img{height:80px;}
+  .photo-no{height:50px;font-size:10px;}
+  .photo-caption{font-size:9px;padding:4px 8px;}
+
+  .result-box{padding:8px 9px;font-size:10px;border-radius:8px;}
+
+  #floorplanImg{height:240px;}
+  #routeCanvas,#markerCanvas{height:240px;}
+
+  .map-toolbar{top:6px;left:6px;gap:3px;}
+  .tb-btn{padding:3px 7px;font-size:10px;border-radius:6px;}
+
+  .map-overlay{padding:5px 10px;font-size:10px;border-radius:8px;}
+  .ov-badge{padding:2px 6px;font-size:9px;border-radius:4px;}
+
+  .wp-list{gap:2px;margin-top:5px;}
+  .wp-item{padding:3px 6px;gap:4px;font-size:10px;border-radius:5px;}
+  .wp-num{width:14px;height:14px;font-size:7px;}
+  .wp-coord{font-size:8px;}
+  .wp-del{width:16px;height:16px;font-size:10px;border-radius:3px;}
+  .wp-empty{font-size:11px;}
+
+  .route-item{padding:8px 10px;font-size:10px;margin-bottom:4px;border-radius:7px;}
+  .route-item-name{font-size:11px;}
+  .route-item-meta{font-size:9px;}
+
+  .modal-box{max-width:100%;border-radius:12px;margin:10px;}
+  .modal-hd{padding:10px 12px;gap:8px;}
+  .modal-title{font-size:12px;}
+  .modal-close{width:26px;height:26px;font-size:12px;border-radius:6px;}
+  .modal-body{padding:10px 12px;max-height:calc(100vh - 80px);}
+
+  .floor-tabs{gap:4px;margin-bottom:10px;}
+  .floor-tab{font-size:11px;padding:5px 12px;border-radius:20px;}
+
+  .floor-placeholder{height:150px;gap:5px;border-radius:8px;}
+  .floor-placeholder i{font-size:28px;}
+
+  .loc-card-header{padding:10px 12px;font-size:12px;gap:8px;}
+  .loc-chevron{font-size:13px;}
+
+  .building-row{border-bottom:1px solid var(--line);}
+  .building-header{padding:8px 12px;font-size:11px;gap:8px;}
+  .b-icon{width:22px;height:22px;font-size:10px;border-radius:5px;}
+  .b-title{font-size:11px;}
+  .b-count{font-size:8px;}
+  .b-chevron{font-size:10px;}
+
+  .place-list{background:var(--bg2);}
+  .place-row{padding:6px 10px 6px 38px;font-size:10px;border-radius:5px;}
+  .place-name{font-size:10px;}
+  .place-floor{font-size:8px;padding:1px 3px;border-radius:3px;}
+  .place-btns{gap:2px;}
+  .place-btn{font-size:9px;padding:2px 6px;border-radius:4px;}
+
+  .flow-step{padding:7px 9px;gap:7px;border-radius:6px;}
+  .flow-num{width:18px;height:18px;font-size:9px;}
+  .flow-title{font-size:10px;}
+  .flow-sub{font-size:9px;}
+  .flow-arrow{font-size:11px;}
+}
+
+@media(max-width:400px){
+  .topnav{padding:7px 8px;}
+  .logo{font-size:12px;}
+  .logo-dot{width:22px;height:22px;}
+
+  .shell{padding:10px 8px 30px;}
+  .page-title{font-size:0.95rem;}
+  .page-title .icon-box{width:26px;height:26px;font-size:12px;}
+
+  .modal-hd{padding:8px 10px;}
+  .modal-body{padding:8px 10px;}
+}
 </style>
 </head>
 <body>

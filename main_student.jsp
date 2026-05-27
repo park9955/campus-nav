@@ -118,7 +118,24 @@
 .cat-item span{font-size:13px;font-weight:700;}
 .cat-item.reserve-btn{border-color:var(--teal);background:var(--teal-lt);}
 .cat-item.reserve-btn:hover{background:var(--teal);color:white;}
-@media(max-width:768px){.cat-grid{grid-template-columns:repeat(2,1fr);}}
+
+/* 테이블 셀 줄바꿈 */
+.tbl tbody td:nth-child(1){word-break:break-word;overflow-wrap:break-word;white-space:normal;}
+.tbl tbody td:nth-child(2),.tbl tbody td:nth-child(3){white-space:nowrap;font-size:11px;}
+
+/* 모바일 폼 요소 */
+@media(max-width:768px){
+  .cat-grid{grid-template-columns:repeat(2,1fr);}
+  .tbl tbody select{font-size:11px;padding:3px 6px;width:auto;}
+  .tbl tbody .btn-danger{padding:3px 8px;font-size:11px;}
+  .tbl tbody td:nth-child(1){font-size:12px;}
+  .tbl tbody td:nth-child(2),.tbl tbody td:nth-child(3){font-size:10px;}
+}
+
+@media(max-width:480px){
+  .tbl tbody td:nth-child(2),.tbl tbody td:nth-child(3){font-size:9px;}
+  .tbl tbody td:nth-child(5){font-size:10px;}
+}
 </style>
 </head>
 <body>

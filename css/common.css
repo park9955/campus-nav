@@ -146,12 +146,84 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
   .hero{grid-template-columns:1fr;padding:22px 18px;gap:0;}
   .hero::after{display:none;} .hero-side{display:none;}
   .stat-row{grid-template-columns:repeat(2,1fr);gap:10px;}
-  .stat-card{padding:14px 14px;}
-  .stat-val{font-size:22px;}
+  .stat-card{padding:14px 14px;font-size:13px;}
+  .stat-icon{width:40px;height:40px;font-size:18px;}
+  .stat-label{font-size:11px;}
+  .stat-val{font-size:20px;}
+  .stat-sub{font-size:11px;}
+
+  /* 메인 그리드 싱글 컬럼 */
+  .main-grid{grid-template-columns:1fr;}
+
+  /* 테이블 모바일 최적화 */
+  .tbl{font-size:13px;}
+  .tbl thead th{font-size:11px;padding:10px 8px;white-space:normal;}
+  .tbl tbody td{padding:10px 8px;font-size:12px;word-break:break-word;overflow-wrap:break-word;}
+  .tbl tbody td strong{font-size:13px;}
+
+  /* 카테고리 그리드 모바일 */
+  .cat-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .cat-item{padding:14px 6px;font-size:12px;}
+  .cat-item i{font-size:20px;margin-bottom:6px;}
+
+  /* 카드 최적화 */
+  .card{margin-bottom:16px;}
+  .card-head{padding:12px 16px;gap:10px;}
+  .ch-icon{width:30px;height:30px;font-size:14px;}
+  .ch-title{font-size:14px;}
+  .ch-sub{font-size:11px;}
+  .card-body{padding:16px;}
+  .card-head-extra{display:none;}
+
+  /* 네비게이션 카드 */
+  .map-frame{padding:20px 16px;gap:6px;font-size:14px;}
+  .map-frame > div:first-child{font-size:40px;}
+  .map-search{padding:8px 12px;font-size:13px;}
+  .map-btns{grid-template-columns:1fr;gap:6px;}
+  .btn-nav-prim,.btn-nav-ghost{padding:9px;font-size:12px;}
+
   /* 모바일 헤더 전환 */
   .nav-right{display:none;}
   .nav-hamburger{display:block;}
 }
+
+@media(max-width:480px){
+  .shell{padding:12px 10px 40px;}
+  .hero{padding:16px 12px;}
+  .hero-eyebrow{font-size:10px;}
+  .hero-title{font-size:22px;}
+  .hero-desc{font-size:13px;}
+  .search-hero{max-width:100%;margin-top:10px;}
+  .btn-search-hero{padding:8px 14px;font-size:12px;}
+
+  .stat-row{grid-template-columns:1fr;gap:8px;}
+  .stat-card{padding:12px;gap:10px;}
+  .stat-icon{width:36px;height:36px;font-size:16px;}
+  .stat-label{font-size:10px;}
+  .stat-val{font-size:18px;}
+
+  .tbl{font-size:12px;}
+  .tbl thead th{font-size:10px;padding:8px 6px;}
+  .tbl tbody td{padding:8px 6px;font-size:11px;}
+
+  .cat-grid{grid-template-columns:repeat(2,1fr);gap:6px;}
+  .cat-item{padding:12px 4px;font-size:11px;}
+  .cat-item i{font-size:18px;margin-bottom:4px;}
+  .cat-item span{font-size:11px;}
+
+  .card-head{padding:10px 12px;gap:8px;}
+  .ch-icon{width:28px;height:28px;font-size:13px;}
+  .ch-title{font-size:13px;}
+  .ch-sub{font-size:10px;}
+  .card-body{padding:12px;}
+
+  .map-frame{padding:16px 12px;gap:5px;margin-bottom:10px;}
+  .map-frame > div:nth-child(2){font-size:12px;font-weight:600;}
+  .map-frame > div:nth-child(3){font-size:11px;}
+  .map-search{padding:7px 10px;font-size:12px;margin-bottom:6px;}
+  .btn-nav-prim,.btn-nav-ghost{padding:8px;font-size:11px;}
+}
+
 @media(min-width:769px){
   .nav-hamburger{display:none;}
   .nav-mobile-menu{display:none!important;}

@@ -176,21 +176,152 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
 /* RESPONSIVE */
 @media(max-width:1024px){.stat-row{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:768px){
-  .topnav{padding:12px 16px;flex-wrap:wrap;gap:8px;}
-  .shell{padding:16px 16px 48px;}
-  .hero{grid-template-columns:1fr;padding:24px 20px;}
+  .topnav{padding:10px 14px;flex-wrap:wrap;gap:6px;}
+  .logo{font-size:15px;gap:6px;}
+  .logo-dot{width:28px;height:28px;}
+  .nav-right{gap:6px;font-size:12px;}
+  .chip{font-size:11px;padding:5px 11px;}
+  .role-chip{font-size:11px;padding:4px 11px;}
+
+  .shell{padding:14px 14px 48px;}
+  .hero{grid-template-columns:1fr;padding:20px 16px;gap:16px;}
   .hero::after{display:none;}
   .hero-side{display:none;}
-  .stat-row{grid-template-columns:repeat(2,1fr);}
-  .search-bar{flex-direction:column;}
-  .search-bar input,.search-bar select{width:100%;}
-  .btn-prim,.btn-ghost{width:100%;display:block;}
-  .flow-box{flex-direction:column;}
+  .hero-eyebrow{font-size:11px;}
+  .hero-title{font-size:24px;line-height:1.2;}
+  .hero-desc{font-size:14px;max-width:100%;}
+  .tag-row{gap:5px;}
+  .tag{font-size:11px;padding:3px 9px;}
+
+  .stat-row{grid-template-columns:repeat(2,1fr);gap:12px;}
+  .stat-card{padding:16px 14px;gap:12px;}
+  .stat-icon{width:40px;height:40px;}
+  .stat-label{font-size:11px;}
+  .stat-val{font-size:24px;}
+  .stat-sub{font-size:11px;}
+
+  .search-bar{flex-direction:column;background:var(--white);border:1.5px solid var(--line2);padding:10px;}
+  .search-bar input,.search-bar select{width:100%;border:1.5px solid var(--line2) !important;background:var(--white) !important;font-size:13px;}
+  .search-bar .btn-prim{width:100%;display:block;border-radius:var(--r);}
+
+  .btn-prim,.btn-ghost{width:100%;display:block;min-height:44px;padding:10px 14px;font-size:13px;}
+  .flow-box{flex-direction:column;padding:14px 12px;}
+  .flow-card{min-width:100%;padding:14px 12px;}
+
+  .card{margin-bottom:14px;}
+  .card-head{padding:12px 14px;gap:10px;}
+  .ch-icon{width:32px;height:32px;font-size:16px;}
+  .ch-title{font-size:14px;}
+  .ch-sub{font-size:11px;}
+  .card-body{padding:14px 14px;}
+
+  .info-row{padding:9px 0;}
+  .info-key{width:100px;font-size:11px;}
+  .info-val{font-size:13px;}
+
+  .tab-bar{margin-bottom:14px;}
+  .tab-btn{padding:9px 14px;font-size:12px;}
+
   table,thead,tbody,th,td,tr{display:block;}
   thead{display:none;}
-  tr{background:var(--white);border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px;padding:12px 14px;}
-  td{padding:5px 0;border:none;font-size:13px;display:flex;align-items:center;gap:8px;}
-  td::before{content:attr(data-label);font-family:var(--mono);font-size:11px;color:var(--txt3);text-transform:uppercase;min-width:70px;flex-shrink:0;}
+  tr{background:var(--white);border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px;padding:10px 12px;}
+  td{padding:5px 0;border:none;font-size:12px;display:flex;align-items:center;gap:8px;}
+  td::before{content:attr(data-label);font-family:var(--mono);font-size:10px;color:var(--txt3);text-transform:uppercase;min-width:60px;flex-shrink:0;}
+
+  .badge-ok,.badge-busy,.badge-warn,.badge-blue,.badge-purple,.badge-teal{font-size:11px;padding:3px 8px;}
+  .nav-btn-area{margin-top:14px;padding-top:12px;}
+  .btn-nav-full{padding:12px 14px;gap:10px;border-radius:var(--r);}
+  .btn-nav-label{font-size:14px;}
+  .btn-nav-sub{font-size:10px;}
+}
+
+@media(max-width:640px){
+  .topnav{padding:8px 12px;gap:5px;}
+  .logo{font-size:14px;}
+  .shell{padding:12px 12px 40px;}
+  .hero{padding:16px 12px;gap:12px;}
+  .hero-title{font-size:22px;}
+  .hero-desc{font-size:13px;}
+  .stat-row{grid-template-columns:1fr;gap:10px;}
+  .stat-card{padding:14px 12px;}
+}
+
+@media(max-width:480px){
+  .topnav{padding:7px 10px;}
+  .logo{font-size:13px;gap:5px;}
+  .logo-dot{width:22px;height:22px;}
+  .nav-right{font-size:11px;gap:4px;}
+  .chip{font-size:10px;padding:4px 8px;border-radius:6px;}
+  .role-chip{font-size:10px;padding:3px 8px;border-radius:5px;}
+
+  .shell{padding:10px 10px 30px;}
+  .hero{padding:14px 10px;gap:10px;border-radius:12px;}
+  .hero-eyebrow{font-size:10px;}
+  .hero-title{font-size:20px;line-height:1.2;}
+  .hero-desc{font-size:12px;line-height:1.6;}
+  .tag{font-size:10px;padding:2px 7px;}
+
+  .stat-row{grid-template-columns:1fr;gap:8px;}
+  .stat-card{padding:12px 10px;gap:10px;}
+  .stat-icon{width:36px;height:36px;font-size:18px;}
+  .stat-label{font-size:10px;}
+  .stat-val{font-size:22px;}
+  .stat-sub{font-size:10px;}
+
+  .search-bar{padding:8px;}
+  .search-bar input,.search-bar select{font-size:12px;}
+  .search-bar .btn-prim{font-size:12px;min-height:40px;}
+
+  .btn-prim,.btn-ghost{min-height:40px;padding:8px 12px;font-size:12px;border-radius:8px;}
+  .btn-sm{padding:3px 7px;font-size:9px;}
+
+  .card{margin-bottom:10px;border-radius:10px;}
+  .card-head{padding:10px 12px;gap:8px;}
+  .ch-icon{width:28px;height:28px;font-size:14px;}
+  .ch-title{font-size:13px;}
+  .ch-sub{font-size:10px;}
+  .card-body{padding:12px 12px;}
+
+  .info-row{padding:7px 0;}
+  .info-key{width:80px;font-size:10px;}
+  .info-val{font-size:12px;}
+
+  .tab-btn{padding:8px 12px;font-size:11px;}
+
+  tr{border-radius:8px;padding:8px 10px;margin-bottom:6px;}
+  td{padding:4px 0;font-size:11px;}
+  td::before{font-size:9px;min-width:50px;}
+
+  .list-item{gap:10px;padding:10px 0;}
+  .badge-ok,.badge-busy,.badge-warn,.badge-blue,.badge-purple,.badge-teal{font-size:10px;padding:2px 7px;}
+  .chip{border-radius:6px;}
+
+  .flow-card{padding:12px 10px;}
+  .flow-label-sm{font-size:10px;}
+  .flow-dept{font-size:14px;}
+  .flow-loc{font-size:12px;margin-top:3px;}
+
+  .nav-btn-area{margin-top:12px;padding-top:10px;}
+  .btn-nav-full{padding:10px 12px;gap:8px;border-radius:10px;}
+  .btn-nav-label{font-size:13px;}
+  .btn-nav-sub{font-size:9px;}
+  .btn-nav-arrow{font-size:14px;}
+  .btn-nav-full > .bi-signpost-2-fill{font-size:18px;}
+
+  .footer-inner{padding:0 12px;flex-direction:column;align-items:flex-start;}
+  .site-footer{margin-top:40px;padding:20px 0 30px;}
+}
+
+@media(max-width:400px){
+  .topnav{padding:6px 8px;}
+  .logo{font-size:12px;}
+  .logo-dot{width:20px;height:20px;}
+  .shell{padding:8px 8px 24px;}
+  .hero{padding:12px 8px;}
+  .hero-title{font-size:18px;}
+  .hero-desc{font-size:11px;}
+  .stat-row{gap:6px;}
+  .stat-card{padding:10px 8px;gap:8px;}
 }
 
 /* ── NAV BUTTON AREA ─────────────────────────────────────────── */

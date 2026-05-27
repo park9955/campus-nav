@@ -1,0 +1,19 @@
+0	53	12:54:57	CREATE TABLE `asset_transfer` (
+   `transfer_id` int NOT NULL AUTO_INCREMENT,
+   `asset_no` varchar(20) NOT NULL,
+   `asset_class` varchar(50) DEFAULT NULL,
+   `item_name` varchar(200) DEFAULT NULL,
+   `transfer_date` date DEFAULT NULL,
+   `before_dept` varchar(100) DEFAULT NULL,
+   `before_location` varchar(200) DEFAULT NULL,
+   `before_detail` varchar(200) DEFAULT NULL,
+   `after_dept` varchar(100) DEFAULT NULL,
+   `after_location` varchar(200) DEFAULT NULL,
+   `after_detail` varchar(200) DEFAULT NULL,
+   `remark` text,
+   `reg_date` datetime DEFAULT CURRENT_TIMESTAMP,
+   PRIMARY KEY (`transfer_id`),
+   KEY `idx_transfer_asset` (`asset_no`),
+   KEY `idx_transfer_date` (`transfer_date`),
+   CONSTRAINT `asset_transfer_ibfk_1` FOREIGN KEY (`asset_no`) REFERENCES `assets` (`asset_no`) ON DELETE CASCADE
+ ) ENGINE=InnoDB AUTO_INCREMENT=141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci	Error Code: 3780. Referencing column 'asset_no' and referenced column 'asset_no' in foreign key constraint 'asset_transfer_ibfk_1' are incompatible.	0.000 sec

@@ -151,6 +151,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
 .list-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s;}
 .list-item:last-child{border-bottom:none;}
 
+/* SIMPLE LIST */
+.list-simple-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--white);cursor:pointer;transition:all .15s;}
+.list-simple-item:hover{background:var(--bg);border-color:var(--blue);box-shadow:var(--shadow);}
+
 /* FLOW BOX */
 .flow-box{display:flex;align-items:center;gap:16px;background:var(--bg);border-radius:var(--r2);padding:20px 24px;flex-wrap:wrap;}
 .flow-card{flex:1;min-width:160px;background:var(--white);border-radius:var(--r);padding:16px 18px;border:1.5px solid var(--line);}
@@ -483,31 +487,19 @@ body { font-size: 15px !important; line-height: 1.7 !important; }
 <% if(list.isEmpty()){%>
 <div style="text-align:center;padding:48px;color:var(--txt3)"><i class="bi bi-search" style="font-size:32px;display:block;margin-bottom:12px;opacity:.3"></i><div style="font-size:15px">검색 결과가 없습니다.</div><a href="/CAN/search.jsp" style="color:var(--blue);font-size:13px">전체 보기</a></div>
 <%}else{%>
-<div style="overflow-x:auto"><table class="tbl">
-<thead><tr><th>자산번호</th><th>분류</th><th>품목명</th><th>위치</th><th>관리부서</th><th>관리자</th><th>상태</th><th>관리</th></tr></thead>
-<tbody>
+<div style="display:flex;flex-direction:column;gap:6px;">
 <% for(Map<String,String> a:list){
    String st=a.get("st");String bc=st.contains("사용중")?"badge-busy":st.contains("점검")?"badge-warn":"badge-ok";
    String cls=a.get("cls");String cl=cls.equals("무형고정자산")?"badge-purple":cls.equals("집기비품")?"badge-blue":"badge-teal";
    String clsL=cls.equals("무형고정자산")?"SW":cls.equals("집기비품")?"집기":"공기구"; %>
-<tr onclick="location.href='/CAN/detail.jsp?id=<%= a.get("no") %>'">
-  <td data-label="자산번호"><span style="font-family:var(--mono);font-size:12px;color:var(--txt3)"><%= a.get("no") %></span></td>
-  <td data-label="분류"><span class="<%= cl %>"><%= clsL %></span></td>
-  <td data-label="품목명"><div style="font-weight:700;font-size:14px"><%= a.get("name") %></div><div style="font-size:12px;color:var(--txt3)"><%= a.get("model") %></div></td>
-  <td data-label="위치"><span style="font-size:13px;color:var(--txt2)"><i class="bi bi-geo-alt" style="color:var(--teal)"></i> <%= a.get("loc") %></span></td>
-  <td data-label="관리부서"><span style="font-size:13px;color:var(--txt2)"><%= a.get("dept") %></span></td>
-  <td data-label="관리자"><span style="font-size:13px"><%= a.get("mgr") %></span></td>
-  <td data-label="상태"><span class="<%= bc %>"><%= st.isEmpty()?"정보없음":st %></span></td>
-  <td data-label="관리" onclick="event.stopPropagation()">
-    <a href="/CAN/detail.jsp?id=<%= a.get("no") %>" class="btn-sm me-1">상세</a>
-    <% if(!"guest".equals(loginRole)){%><a href="/CAN/reserve.jsp?id=<%= a.get("no") %>" class="btn-sm">예약</a><%}%>
-                    <% if("admin".equals(loginRole)||"assistant".equals(loginRole)||"professor".equals(loginRole)){%>
-                    <a href="/CAN/asset_manage.jsp?keyword=<%= a.get("no") %>" class="btn-sm" style="border-color:var(--amber);color:var(--amber)">수정/삭제</a>
-                    <%}%>
-  </td>
-</tr>
+<div class="list-simple-item" onclick="location.href='/CAN/detail.jsp?id=<%= a.get("no") %>'">
+  <span class="<%= cl %>" style="flex-shrink:0"><%= clsL %></span>
+  <span style="font-family:var(--mono);font-size:12px;color:var(--txt3);flex-shrink:0"><%= a.get("no") %></span>
+  <span style="font-weight:600;color:var(--txt);flex:1"><%= a.get("name") %></span>
+  <span class="<%= bc %>" style="flex-shrink:0"><%= st.isEmpty()?"정보없음":st %></span>
+</div>
 <% }%>
-</tbody></table></div>
+</div>
 <div class="pager">
   <%  String encKw=java.net.URLEncoder.encode(keyword,"UTF-8"),encType=java.net.URLEncoder.encode(type,"UTF-8"),encSt=java.net.URLEncoder.encode(status,"UTF-8"); %>
   <%if(curPage>1){%><a href="/CAN/search.jsp?keyword=<%= encKw %>&type=<%= encType %>&status=<%= encSt %>&page=<%= curPage-1 %>" class="pb">‹</a><%}%>

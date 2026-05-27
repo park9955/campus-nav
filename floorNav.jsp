@@ -315,6 +315,165 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
 .floor-tab{font-family:var(--mono);font-size:12px;font-weight:700;padding:6px 16px;border-radius:999px;border:1.5px solid var(--line2);background:var(--white);color:var(--txt2);cursor:pointer;transition:all .15s;}
 .floor-tab:hover{border-color:var(--blue);color:var(--blue);}
 .floor-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+/* ──────────────────────────────────────────────────────────────────── */
+/* RESPONSIVE MOBILE */
+/* ──────────────────────────────────────────────────────────────────── */
+
+@media(max-width:768px){
+  .topnav{padding:10px 14px;gap:6px;}
+  .logo{font-size:15px;gap:6px;}
+  .logo-dot{width:28px;height:28px;}
+  .nav-right{gap:6px;font-size:12px;}
+  .chip{font-size:11px;padding:5px 11px;}
+  .role-chip{font-size:11px;padding:4px 11px;}
+
+  .shell{padding:14px 14px 48px;}
+  .page-title{font-size:1.2rem;gap:8px;}
+  .page-title .icon-box{width:32px;height:32px;font-size:15px;}
+  .page-sub{font-size:12px;padding-left:40px;}
+
+  .card{margin-bottom:14px;}
+  .card-head{padding:12px 16px;gap:8px;}
+  .ch-icon{width:30px;height:30px;font-size:14px;}
+  .ch-title{font-size:13px;}
+  .ch-sub{font-size:10px;}
+  .card-body{padding:14px 16px;}
+
+  .f-label{font-size:11px;margin-bottom:4px;}
+  .f-select,.f-input{padding:7px 10px;font-size:12px;}
+
+  .btn-prim,.btn-teal,.btn-ghost{padding:9px 14px;font-size:12px;width:100%;min-height:44px;}
+  .btn-sm{padding:4px 8px;font-size:10px;}
+
+  .admin-banner{padding:8px 11px;font-size:11px;}
+  .arrived-banner{padding:10px 12px;gap:10px;margin-bottom:12px;}
+  .arrived-icon{width:36px;height:36px;font-size:18px;}
+  .arrived-title{font-size:14px;}
+  .arrived-sub{font-size:11px;margin-top:1px;}
+
+  #floorplanImg,.fp-placeholder{height:280px;}
+  #routeCanvas,#clickCanvas{height:280px;}
+
+  .map-toolbar{top:8px;left:8px;gap:4px;}
+  .tb-btn{padding:4px 9px;font-size:11px;}
+
+  .map-overlay{padding:6px 12px;font-size:11px;}
+  .ov-badge{padding:2px 7px;font-size:10px;}
+
+  .wp-list{gap:2px;margin-top:5px;}
+  .wp-item{padding:4px 7px;gap:5px;font-size:11px;}
+  .wp-num{width:16px;height:16px;font-size:8px;}
+  .wp-coord{font-size:9px;}
+  .wp-del{width:18px;height:18px;font-size:11px;}
+
+  .route-item{padding:9px 11px;font-size:11px;margin-bottom:5px;}
+  .route-item-name{font-size:11px;}
+  .route-item-meta{font-size:9px;}
+
+  .result-box{padding:9px 11px;font-size:11px;}
+
+  .floor-tabs{gap:5px;margin-bottom:8px;}
+  .floor-tab{font-size:11px;padding:5px 12px;}
+}
+
+@media(max-width:640px){
+  .topnav{padding:8px 12px;gap:5px;}
+  .logo{font-size:14px;}
+  .shell{padding:12px 12px 40px;}
+  .page-title{font-size:1.1rem;}
+  .page-title .icon-box{width:30px;height:30px;font-size:14px;}
+  .page-sub{font-size:11px;padding-left:38px;}
+
+  #floorplanImg,.fp-placeholder{height:240px;}
+  #routeCanvas,#clickCanvas{height:240px;}
+}
+
+@media(max-width:480px){
+  .topnav{padding:7px 10px;}
+  .logo{font-size:13px;gap:5px;}
+  .logo-dot{width:22px;height:22px;}
+  .nav-right{font-size:11px;gap:4px;}
+  .chip{font-size:10px;padding:4px 8px;border-radius:6px;}
+  .role-chip{font-size:10px;padding:3px 8px;border-radius:5px;}
+
+  .shell{padding:10px 10px 30px;}
+  .page-title{font-size:1rem;gap:6px;margin-bottom:2px;}
+  .page-title .icon-box{width:26px;height:26px;font-size:12px;border-radius:8px;}
+  .page-sub{font-size:10px;padding-left:36px;margin-bottom:10px;}
+
+  .card{margin-bottom:10px;}
+  .card-head{padding:10px 12px;gap:6px;}
+  .ch-icon{width:26px;height:26px;font-size:12px;border-radius:7px;}
+  .ch-title{font-size:12px;font-weight:700;}
+  .ch-sub{font-size:9px;}
+  .card-body{padding:12px 12px;}
+
+  .f-label{font-size:10px;margin-bottom:3px;}
+  .f-select,.f-input{padding:6px 9px;font-size:11px;border-radius:8px;}
+
+  .btn-prim,.btn-teal,.btn-ghost{padding:8px 12px;font-size:11px;min-height:42px;border-radius:8px;}
+  .btn-sm{padding:3px 7px;font-size:9px;border-radius:5px;}
+
+  .admin-banner{padding:7px 9px;font-size:10px;border-radius:7px;gap:8px;}
+  .admin-banner i{font-size:14px;}
+
+  .arrived-banner{padding:9px 10px;gap:8px;border-radius:8px;margin-bottom:10px;}
+  .arrived-icon{width:32px;height:32px;font-size:16px;border-radius:8px;}
+  .arrived-title{font-size:12px;font-weight:700;}
+  .arrived-sub{font-size:10px;margin-top:1px;}
+
+  #floorplanImg,.fp-placeholder{height:200px;}
+  #routeCanvas,#clickCanvas{height:200px;}
+
+  .floorplan-wrap{border-radius:10px;}
+  .map-toolbar{top:6px;left:6px;gap:3px;}
+  .tb-btn{padding:3px 7px;font-size:10px;border-radius:6px;}
+
+  .map-overlay{padding:5px 10px;font-size:10px;border-radius:8px;}
+  .ov-badge{padding:2px 6px;font-size:9px;border-radius:4px;}
+  .map-tooltip{padding:3px 7px;border-radius:5px;font-size:10px;}
+
+  .wp-list{gap:2px;margin-top:5px;}
+  .wp-item{padding:3px 6px;gap:4px;font-size:10px;border-radius:5px;}
+  .wp-num{width:14px;height:14px;font-size:7px;}
+  .wp-coord{font-size:8px;}
+  .wp-del{width:16px;height:16px;font-size:9px;border-radius:3px;}
+  .wp-empty{font-size:11px;}
+
+  .route-item{padding:8px 10px;font-size:10px;margin-bottom:4px;border-radius:7px;}
+  .route-item-name{font-size:10px;font-weight:600;}
+  .route-item-meta{font-size:8px;}
+
+  .result-box{padding:8px 9px;font-size:10px;border-radius:8px;}
+
+  .divider{margin:10px 0;}
+  .alert-err{padding:8px 10px;font-size:12px;border-radius:7px;}
+
+  .floor-tabs{gap:4px;margin-bottom:8px;}
+  .floor-tab{font-size:10px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--line2);}
+
+  .fp-placeholder{height:160px;gap:5px;}
+  .fp-placeholder i{font-size:32px;}
+  .fp-placeholder p{font-size:12px;}
+}
+
+@media(max-width:400px){
+  .topnav{padding:6px 8px;}
+  .logo{font-size:12px;gap:4px;}
+  .logo-dot{width:20px;height:20px;}
+
+  .shell{padding:8px 8px 24px;}
+  .page-title{font-size:0.95rem;}
+  .page-title .icon-box{width:24px;height:24px;font-size:11px;}
+  .page-sub{font-size:9px;padding-left:32px;}
+
+  #floorplanImg,.fp-placeholder{height:180px;}
+  #routeCanvas,#clickCanvas{height:180px;}
+
+  .map-toolbar{top:5px;left:5px;}
+  .tb-btn{padding:3px 6px;font-size:9px;}
+}
 </style>
 </head>
 <body>
