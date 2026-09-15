@@ -1,0 +1,243 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.viewer { padding: 1rem 0; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding: 0 0.5rem; flex-wrap: wrap; gap: 8px; }
+.title-block h2 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.title-block p { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+.floor-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab-btn { padding: 6px 14px; font-size: 13px; font-weight: 500; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.tab-btn.active { background: #185FA5; border-color: #185FA5; color: #fff; }
+.tab-btn:hover:not(.active) { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.floor-panel { display: none; }
+.floor-panel.active { display: block; }
+.plan-wrapper { overflow-x: auto; }
+.floor-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; letter-spacing: 0.05em; }
+.elev-box { background: #D3D1C7; border: 1px solid #888780; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #444441; font-weight: 500; width: 60px; height: 36px; flex-shrink: 0; }
+.pg { display: grid; border: 1px solid #888780; background: var(--color-background-primary); }
+.r { border: 0.5px solid #B4B2A9; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 3px; text-align: center; cursor: pointer; transition: background 0.15s; }
+.r:hover { filter: brightness(0.94); }
+.rn { font-size: 10px; font-weight: 500; color: #185FA5; line-height: 1.2; }
+.rs { font-size: 8px; color: #5F5E5A; margin-top: 1px; }
+.rm { font-size: 8.5px; color: #3B6D11; margin-top: 2px; font-weight: 500; line-height: 1.3; }
+.co { background: #F1EFE8; } .co .rm { color: #5F5E5A; font-size: 10px; }
+.st { background: #D3D1C7; } .st .rm { color: #444441; font-size: 9px; }
+.to { background: #E6F1FB; } .to .rm { color: #0C447C; }
+.le { background: #EAF3DE; }
+.ca { background: #FAEEDA; } .ca .rm { color: #633806; }
+.of { background: #EEEDFE; } .of .rm { color: #3C3489; }
+.gy { background: #FAECE7; } .gy .rm { color: #712B13; }
+.sg { background: #B4B2A9; } .sg .rm { color: #2C2C2A; font-size: 8px; }
+.rt { background: #D3D1C7; } .rt .rm { color: #444441; }
+.tooltip { position: fixed; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 8px 12px; font-size: 12px; pointer-events: none; z-index: 999; display: none; max-width: 220px; }
+.tooltip .tn { font-weight: 500; font-size: 13px; color: var(--color-text-primary); }
+.tooltip .ts { color: var(--color-text-secondary); margin-top: 2px; font-size: 11px; }
+.tooltip .tt { color: #185FA5; font-weight: 500; margin-top: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 0 0.5rem; }
+.li { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+.ld { width: 12px; height: 12px; border: 0.5px solid #B4B2A9; border-radius: 2px; flex-shrink: 0; }
+</style>
+
+<div class="viewer">
+  <div class="header">
+    <div class="title-block">
+      <h2>제1공학관 건물배치도</h2>
+      <p>층을 선택하여 평면도를 확인하세요</p>
+    </div>
+    <div class="floor-tabs">
+      <button class="tab-btn" onclick="sf(event,'f1')">1층</button>
+      <button class="tab-btn" onclick="sf(event,'f2')">2층</button>
+      <button class="tab-btn" onclick="sf(event,'f3')">3층</button>
+      <button class="tab-btn" onclick="sf(event,'f4')">4층</button>
+      <button class="tab-btn" onclick="sf(event,'f5')">5층</button>
+      <button class="tab-btn active" onclick="sf(event,'f6')">6층</button>
+    </div>
+  </div>
+
+  <!-- 1~5층은 이전과 동일 -->
+  <div id="f1" class="floor-panel">
+    <div class="floor-label">• 1층</div>
+    <div class="plan-wrapper"><div style="min-width:800px;">
+      <div style="display:flex; align-items:stretch;">
+        <div style="display:flex; flex-direction:column; justify-content:flex-end;">
+          <div class="elev-box">승강기</div>
+        </div>
+        <div class="pg" style="grid-template-columns:110px 110px 110px 60px 80px 110px 105px 105px; grid-template-rows:100px 36px; flex:1;">
+          <div class="r le" style="grid-column:1;grid-row:1" onmouseenter="tip(event,'1101호','11×8.7m','95.7m²','컴퓨터실습실')" onmouseleave="ht()"><div class="rn">1101호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">컴퓨터실습실</div></div>
+          <div class="r le" style="grid-column:2;grid-row:1" onmouseenter="tip(event,'1102호','11×8.7m','95.7m²','컴퓨터실습실')" onmouseleave="ht()"><div class="rn">1102호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">컴퓨터실습실</div></div>
+          <div class="r le" style="grid-column:3;grid-row:1" onmouseenter="tip(event,'1103호','11×8.7m','95.7m²','컴퓨터실습실')" onmouseleave="ht()"><div class="rn">1103호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">컴퓨터실습실</div></div>
+          <div class="r st" style="grid-column:4;grid-row:1" onmouseenter="tip(event,'계단','','-','계단')" onmouseleave="ht()"><div class="rm">계단</div></div>
+          <div class="r to" style="grid-column:5;grid-row:1" onmouseenter="tip(event,'화장실','','22.38m²','화장실')" onmouseleave="ht()"><div class="rm">화장실</div><div class="rs">22.38m²</div></div>
+          <div class="r le" style="grid-column:6;grid-row:1" onmouseenter="tip(event,'1105호','11×8.7m','95.7m²','컴퓨터실습실')" onmouseleave="ht()"><div class="rn">1105호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">컴퓨터실습실</div></div>
+          <div class="r le" style="grid-column:7;grid-row:1" onmouseenter="tip(event,'1106호','8.25×11.5m','94.875m²','컴퓨터실습실')" onmouseleave="ht()"><div class="rn">1106호</div><div class="rs">8.25×11.5m / 94.875m²</div><div class="rm">컴퓨터실습실</div></div>
+          <div class="r le" style="grid-column:8;grid-row:1" onmouseenter="tip(event,'1107호','8.25×11.5m','94.875m²','컴퓨터실습실')" onmouseleave="ht()"><div class="rn">1107호</div><div class="rs">8.25×11.5m / 94.875m²</div><div class="rm">컴퓨터실습실</div></div>
+          <div class="r co" style="grid-column:1/9;grid-row:2"><div class="rm">복도</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div id="f2" class="floor-panel">
+    <div class="floor-label">• 2층</div>
+    <div class="plan-wrapper"><div style="min-width:800px;">
+      <div style="display:flex; align-items:stretch;">
+        <div style="display:flex; flex-direction:column; justify-content:flex-end;"><div class="elev-box">승강기</div></div>
+        <div class="pg" style="grid-template-columns:110px 110px 110px 60px 110px 110px 130px; grid-template-rows:100px 36px; flex:1;">
+          <div class="r of" style="grid-column:1;grid-row:1" onmouseenter="tip(event,'1201호','11×8.7m','95.7m²','회의실')" onmouseleave="ht()"><div class="rn">1201호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">회의실</div></div>
+          <div class="r le" style="grid-column:2;grid-row:1" onmouseenter="tip(event,'1202호','11×8.7m','95.7m²','도면설계실습실')" onmouseleave="ht()"><div class="rn">1202호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">도면설계실습실</div></div>
+          <div class="r le" style="grid-column:3;grid-row:1" onmouseenter="tip(event,'1203호','11×8.7m','95.7m²','강의실')" onmouseleave="ht()"><div class="rn">1203호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">강의실</div></div>
+          <div class="r st" style="grid-column:4;grid-row:1" onmouseenter="tip(event,'계단','','-','계단')" onmouseleave="ht()"><div class="rm">계단</div></div>
+          <div class="r le" style="grid-column:5;grid-row:1" onmouseenter="tip(event,'1205호','11×8.7m','95.7m²','멀티미디어기초실습실')" onmouseleave="ht()"><div class="rn">1205호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">멀티미디어기초실습실</div></div>
+          <div class="r le" style="grid-column:6;grid-row:1" onmouseenter="tip(event,'1206호','11×8.7m','95.7m²','멀티미디어통신실습실')" onmouseleave="ht()"><div class="rn">1206호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">멀티미디어통신실습실</div></div>
+          <div class="r le" style="grid-column:7;grid-row:1" onmouseenter="tip(event,'1207호','13×8.7m','113.1m²','멀티미디어통신운용실습실')" onmouseleave="ht()"><div class="rn">1207호</div><div class="rs">13×8.7m / 113.1m²</div><div class="rm">멀티미디어통신운용실습실</div></div>
+          <div class="r co" style="grid-column:1/8;grid-row:2"><div class="rm">복도</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div id="f3" class="floor-panel">
+    <div class="floor-label">• 3층</div>
+    <div class="plan-wrapper"><div style="min-width:800px;">
+      <div style="display:flex; align-items:stretch;">
+        <div style="display:flex; flex-direction:column; justify-content:flex-end;"><div class="elev-box">승강기</div></div>
+        <div class="pg" style="grid-template-columns:110px 160px 70px 60px 110px 160px 130px; grid-template-rows:100px 36px; flex:1;">
+          <div class="r le" style="grid-column:1;grid-row:1" onmouseenter="tip(event,'1301호','11×8.7m','95.7m²','강의실')" onmouseleave="ht()"><div class="rn">1301호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">강의실</div></div>
+          <div class="r le" style="grid-column:2;grid-row:1" onmouseenter="tip(event,'1302호','16.5×8.7m','143.55m²','이동통신종합실습실')" onmouseleave="ht()"><div class="rn">1302호</div><div class="rs">16.5×8.7m / 143.55m²</div><div class="rm">이동통신종합실습실</div></div>
+          <div class="r to" style="grid-column:3;grid-row:1" onmouseenter="tip(event,'화장실','5.5×8.7m','47.85m²','화장실')" onmouseleave="ht()"><div class="rm">화장실</div><div class="rs">47.85m²</div></div>
+          <div class="r st" style="grid-column:4;grid-row:1" onmouseenter="tip(event,'계단','','-','계단')" onmouseleave="ht()"><div class="rm">계단</div></div>
+          <div class="r le" style="grid-column:5;grid-row:1" onmouseenter="tip(event,'1305호','11×8.7m','95.7m²','이동통신네트워크실습실')" onmouseleave="ht()"><div class="rn">1305호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">이동통신네트워크실습실</div></div>
+          <div class="r le" style="grid-column:6;grid-row:1" onmouseenter="tip(event,'1306호','16.5×11.5m','95.7m²','안테나실습실')" onmouseleave="ht()"><div class="rn">1306호</div><div class="rs">16.5×11.5m / 95.7m²</div><div class="rm">안테나실습실</div></div>
+          <div class="r le" style="grid-column:7;grid-row:1" onmouseenter="tip(event,'1307호','','141.9m²','통신회로실습실')" onmouseleave="ht()"><div class="rn">1307호</div><div class="rs">141.9m²</div><div class="rm">통신회로실습실</div></div>
+          <div class="r co" style="grid-column:1/8;grid-row:2"><div class="rm">복도</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div id="f4" class="floor-panel">
+    <div class="floor-label">• 4층</div>
+    <div class="plan-wrapper"><div style="min-width:800px;">
+      <div style="display:flex; align-items:stretch;">
+        <div style="display:flex; flex-direction:column; justify-content:flex-end;"><div class="elev-box">승강기</div></div>
+        <div class="pg" style="grid-template-columns:52px 110px 110px 70px 60px 110px 110px 110px; grid-template-rows:100px 36px; flex:1;">
+          <div class="r sg" style="grid-column:1;grid-row:1" onmouseenter="tip(event,'1401호','5.5×8.7m','47.85m²','창고')" onmouseleave="ht()"><div class="rn" style="font-size:9px">1401호</div><div class="rs">5.5×8.7m</div><div class="rm">창고</div></div>
+          <div class="r le" style="grid-column:2;grid-row:1" onmouseenter="tip(event,'1402호','11×8.7m','95.7m²','일학습병행제강의실')" onmouseleave="ht()"><div class="rn">1402호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">일학습병행제강의실</div></div>
+          <div class="r le" style="grid-column:3;grid-row:1" onmouseenter="tip(event,'1403호','11×8.7m','95.7m²','일학습병행제실습실')" onmouseleave="ht()"><div class="rn">1403호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">일학습병행제실습실</div></div>
+          <div class="r to" style="grid-column:4;grid-row:1" onmouseenter="tip(event,'화장실','5.5×8.7m','47.85m²','화장실')" onmouseleave="ht()"><div class="rm">화장실</div><div class="rs">47.85m²</div></div>
+          <div class="r st" style="grid-column:5;grid-row:1" onmouseenter="tip(event,'계단','','-','계단')" onmouseleave="ht()"><div class="rm">계단</div></div>
+          <div class="r le" style="grid-column:6;grid-row:1" onmouseenter="tip(event,'1405호','11×8.7m','95.7m²','강의실')" onmouseleave="ht()"><div class="rn">1405호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">강의실</div></div>
+          <div class="r le" style="grid-column:7;grid-row:1" onmouseenter="tip(event,'1406호','11×8.7m','95.7m²','강의실')" onmouseleave="ht()"><div class="rn">1406호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">강의실</div></div>
+          <div class="r le" style="grid-column:8;grid-row:1" onmouseenter="tip(event,'1407호','11×8.7m','95.7m²','ICT실습실')" onmouseleave="ht()"><div class="rn">1407호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">ICT실습실</div></div>
+          <div class="r co" style="grid-column:1/9;grid-row:2"><div class="rm">복도</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div id="f5" class="floor-panel">
+    <div class="floor-label">• 5층</div>
+    <div class="plan-wrapper"><div style="min-width:800px;">
+      <div style="display:flex; align-items:stretch;">
+        <div style="display:flex; flex-direction:column; justify-content:flex-end;"><div class="elev-box">승강기</div></div>
+        <div class="pg" style="grid-template-columns:70px 100px 110px 70px 60px 1fr; grid-template-rows:110px 36px; flex:1;">
+          <div class="r of" style="grid-column:1;grid-row:1" onmouseenter="tip(event,'1501호','5.5×4.3m','23.65m²','교수실')" onmouseleave="ht()"><div class="rn">1501호</div><div class="rs">5.5×4.3m / 23.65m²</div><div class="rm">교수실</div></div>
+          <div class="r of" style="grid-column:2;grid-row:1" onmouseenter="tip(event,'1502호','5.5×8.7m','47.85m²','산업기술연구소')" onmouseleave="ht()"><div class="rn">1502호</div><div class="rs">5.5×8.7m / 47.85m²</div><div class="rm">산업기술연구소</div></div>
+          <div class="r le" style="grid-column:3;grid-row:1" onmouseenter="tip(event,'1503호','11×8.7m','95.7m²','강의실')" onmouseleave="ht()"><div class="rn">1503호</div><div class="rs">11×8.7m / 95.7m²</div><div class="rm">강의실</div></div>
+          <div class="r to" style="grid-column:4;grid-row:1" onmouseenter="tip(event,'화장실','5.5×8.7m','47.85m²','화장실')" onmouseleave="ht()"><div class="rm">화장실</div><div class="rs">47.85m²</div></div>
+          <div class="r st" style="grid-column:5;grid-row:1" onmouseenter="tip(event,'계단','','-','계단')" onmouseleave="ht()"><div class="rm">계단</div></div>
+          <div class="r gy" style="grid-column:6;grid-row:1" onmouseenter="tip(event,'1505호','30×11.5m','345m²','강당 겸 실내 체육관')" onmouseleave="ht()"><div class="rn">1505호</div><div class="rs">30×11.5m / 345m²</div><div class="rm">강당 겸 실내 체육관</div></div>
+          <div class="r co" style="grid-column:1/7;grid-row:2"><div class="rm">복도</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ===== 6층 =====
+    cols: 옥상(200) | 물탱크실(70) | 창고(70) | 계단(60) | 1601호(130) | 5층부(1fr)
+    rows: row1(65) | row2(65)
+    - 옥상: col1, row1/3 (전체 높이)
+    - 물탱크실: col2, row1
+    - 창고: col3, row1
+    - 물탱크+창고 아래(col2~3, row2): 옥상과 같은 색으로 합쳐서 연결
+    - 계단: col4, row1/3
+    - 1601호: col5, row1/3
+    - 5층부: col6, row1/3
+  -->
+  <div id="f6" class="floor-panel active">
+    <div class="floor-label">• 6층 (옥상층)</div>
+    <div class="plan-wrapper"><div style="min-width:800px;">
+      <div style="display:flex; align-items:stretch;">
+        <div style="display:flex; flex-direction:column; justify-content:flex-end;"><div class="elev-box">승강기</div></div>
+        <div class="pg" style="grid-template-columns:200px 70px 70px 60px 130px 1fr; grid-template-rows:65px 65px; flex:1;">
+
+          <!-- 옥상: col1 전체 높이 -->
+          <div class="r rt" style="grid-column:1;grid-row:1/3" onmouseenter="tip(event,'옥상','','','옥상')" onmouseleave="ht()">
+            <div class="rm" style="font-size:12px;">옥상</div>
+          </div>
+
+          <!-- 물탱크실: col2, row1 -->
+          <div class="r sg" style="grid-column:2;grid-row:1" onmouseenter="tip(event,'물탱크실','5.5×4.3m','23.65m²','물탱크실')" onmouseleave="ht()">
+            <div class="rm">물탱크실</div><div class="rs">23.65m²</div>
+          </div>
+
+          <!-- 창고: col3, row1 -->
+          <div class="r sg" style="grid-column:3;grid-row:1" onmouseenter="tip(event,'창고','5.5×4.4m','24.2m²','창고')" onmouseleave="ht()">
+            <div class="rm">창고</div><div class="rs">24.2m²</div>
+          </div>
+
+          <!-- 물탱크+창고 아래(col2~3, row2): 옥상과 동일 색으로 연결 -->
+          <div class="r rt" style="grid-column:2/4;grid-row:2" onmouseenter="tip(event,'옥상','','','옥상')" onmouseleave="ht()">
+          </div>
+
+          <!-- 계단: col4 전체 높이 -->
+          <div class="r st" style="grid-column:4;grid-row:1/3" onmouseenter="tip(event,'계단','','-','계단')" onmouseleave="ht()">
+            <div class="rm">계단</div>
+          </div>
+
+          <!-- 1601호: col5 전체 높이 -->
+          <div class="r gy" style="grid-column:5;grid-row:1/3" onmouseenter="tip(event,'1601호','7.7×11.5m','88.55m²','강당(중층)')" onmouseleave="ht()">
+            <div class="rn">1601호</div><div class="rs">88.55m²</div><div class="rm">강당(중층)</div>
+          </div>
+
+          <!-- 5층부: col6 전체 높이 -->
+          <div class="r gy" style="grid-column:6;grid-row:1/3" onmouseenter="tip(event,'5층부','','','강당 및 실내체육관 상부')" onmouseleave="ht()">
+            <div class="rm">5층부</div><div class="rs">(강당 및 실내체육관)</div>
+          </div>
+
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:#EAF3DE"></div>강의실/실습실</div>
+    <div class="li"><div class="ld" style="background:#F1EFE8"></div>복도</div>
+    <div class="li"><div class="ld" style="background:#D3D1C7"></div>계단/옥상/승강기</div>
+    <div class="li"><div class="ld" style="background:#E6F1FB"></div>화장실</div>
+    <div class="li"><div class="ld" style="background:#EEEDFE"></div>교수실/사무실</div>
+    <div class="li"><div class="ld" style="background:#FAECE7"></div>강당/체육관</div>
+    <div class="li"><div class="ld" style="background:#B4B2A9"></div>창고/물탱크</div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+<script>
+function sf(e,id){
+  document.querySelectorAll('.floor-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  e.target.classList.add('active');
+}
+function tip(e,num,size,area,name){
+  const t=document.getElementById('tooltip');
+  t.style.display='block';
+  t.innerHTML='<div class="tn">'+num+'</div>'
+    +(size?'<div class="ts">크기: '+size+'</div>':'')
+    +(area?'<div class="ts">면적: '+area+'</div>':'')
+    +(name?'<div class="tt">'+name+'</div>':'');
+  t.style.left=(e.clientX+12)+'px';
+  t.style.top=(e.clientY-10)+'px';
+}
+function ht(){document.getElementById('tooltip').style.display='none';}
+</script>

@@ -1,242 +1,636 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" session="true" %>
 <%
     String loginUser=(String)session.getAttribute("loginUser");
-    if(loginUser==null){response.sendRedirect("/CampusNav/campuslogin.jsp");return;}
+    if(loginUser==null){response.sendRedirect("/CAN/campuslogin.jsp");return;}
 %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ICT CampusNav — 게스트</title>
+<title>CAN — 게스트</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700;9..40,800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --white:#fff;--bg:#f7f8fa;--line:#e4e7ed;--line2:#d0d5df;
-  --txt:#111827;--txt2:#4b5563;--txt3:#9ca3af;
-  --blue:#1a56db;--blue-lt:#eff4ff;--blue-md:#c7d7fd;
-  --teal:#0d9488;--teal-lt:#f0fdfa;--teal-md:#99f6e4;
-  --amber:#d97706;--amber-lt:#fffbeb;
-  --red:#dc2626;--red-lt:#fef2f2;
-  --green:#16a34a;--green-lt:#f0fdf4;
-  --purple:#7c3aed;--purple-lt:#f5f3ff;
-  --mono:'DM Mono',monospace;
-  --sans:'DM Sans','Noto Sans KR',sans-serif;
-  --r:12px;--r2:20px;
-  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
-  --shadow2:0 2px 8px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.06);
+:root {
+  --sky-primary: #0284c7;
+  --sky-hover: #0369a1;
+  --sky-light: #bae6fd;
+  --sky-bg: #f0f9ff;
+  --emerald-primary: #059669;
+  --emerald-hover: #047857;
+  --emerald-light: #a7f3d0;
+  --emerald-bg: #f0fdf4;
+  --amber-main: #d97706;
+  --amber-hover: #b45309;
+  --red-main: #dc2626;
+  --txt-main: #0f172a;
+  --txt-sub: #64748b;
+  --txt-muted: #94a3b8;
+  --surface: #ffffff;
+  --bg: #f8fafc;
+  --border: #e2e8f0;
+  --border-dark: #cbd5e1;
+  --radius-pill: 999px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15px;line-height:1.65;}
 
-.topnav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:var(--white);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.04);}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--txt);text-decoration:none;}
-.logo-dot{width:30px;height:30px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.logo-dot img{width:100%;height:100%;object-fit:contain;}
-.logo em{color:var(--blue);font-style:normal;}
-.nav-right{display:flex;gap:8px;align-items:center;}
-.chip{font-family:var(--mono);font-size:12px;padding:6px 14px;border-radius:999px;background:var(--white);border:1px solid var(--line);color:var(--txt2);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
-.chip:hover{border-color:var(--blue);color:var(--blue);}
-.chip-blue{background:var(--blue) !important;color:white !important;border-color:var(--blue) !important;}
-.chip-blue:hover{background:#1647c0 !important;}
-.role-chip{font-family:var(--mono);font-size:12px;padding:5px 13px;border-radius:6px;background:var(--bg);border:1px solid var(--line2);color:var(--txt3);}
-
-.shell{max-width:1380px;margin:0 auto;padding:28px 32px 72px;}
-
-/* HERO */
-.hero{
-  background:linear-gradient(135deg,#0f172a 0%,#0d6147 50%,#16a34a 100%);
-  border-radius:var(--r2);padding:44px 48px;margin-bottom:24px;
-  box-shadow:0 8px 32px rgba(15,23,42,.25);
-  display:grid;grid-template-columns:1fr 120px;gap:32px;align-items:center;
-  position:relative;overflow:hidden;
+[data-theme="dark"] {
+  --sky-primary: #38bdf8;
+  --sky-bg: #0c2d42;
+  --emerald-bg: #0d2d24;
+  --txt-main: #f1f5f9;
+  --txt-sub: #cbd5e1;
+  --txt-muted: #94a3b8;
+  --surface: #1e293b;
+  --bg: #0f172a;
+  --border: #334155;
+  --border-dark: #475569;
 }
-/* pointer-events:none 필수! 안 하면 버튼 클릭 차단됨 */
-.hero::after{content:'';position:absolute;right:0;top:0;bottom:0;width:280px;background:linear-gradient(135deg,rgba(255,255,255,.05) 0%,rgba(22,163,74,.12) 100%);clip-path:polygon(15% 0%,100% 0%,100% 100%,0% 100%);pointer-events:none;z-index:0;}
-.hero-content{position:relative;z-index:1;}
-.hero-eyebrow{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.7);letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;}
-.hero-title{font-size:30px;font-weight:800;color:#fff;margin-bottom:10px;}
-.hero-title em{color:#4ade80;font-style:normal;}
-.hero-desc{color:rgba(255,255,255,.88);font-size:15px;line-height:1.8;margin-bottom:20px;}
-.hero-side{position:relative;z-index:1;text-align:center;font-size:56px;}
 
-/* 검색바 */
-.search-wrap{position:relative;z-index:2;display:flex;gap:8px;max-width:520px;
-  background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.38);
-  border-radius:var(--r2);padding:6px 6px 6px 16px;}
-.search-wrap input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:15px;font-family:var(--sans);}
-.search-wrap input::placeholder{color:rgba(255,255,255,.55);}
-.search-wrap:focus-within{border-color:rgba(255,255,255,.7);}
-.btn-search{background:var(--blue);color:white;border:none;border-radius:var(--r);padding:10px 20px;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
-.btn-search:hover{background:#1647c0;}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* MAIN GRID */
-.main-grid{display:grid;grid-template-columns:1fr 360px;gap:20px;}
+body {
+  background: var(--bg);
+  color: var(--txt-main);
+  font-family: Pretendard, 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  transition: background 0.3s, color 0.3s;
+}
 
-/* CARD */
-.card{background:var(--white);border:1.5px solid var(--line2);border-radius:var(--r2);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px;}
-.card-head{padding:18px 24px;border-bottom:1.5px solid var(--line2);display:flex;align-items:center;gap:12px;}
-.ch-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.si-blue{background:var(--blue-lt);}.si-teal{background:var(--teal-lt);}
-.ch-title{font-size:15px;font-weight:700;color:var(--txt);}
-.ch-sub{font-size:12px;color:var(--txt3);margin-top:2px;}
-.card-body{padding:20px 24px;}
+/* Header */
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-/* 카테고리 그리드 */
-.cat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
-.cat-item{border:1.5px solid var(--line);border-radius:var(--r2);padding:18px 8px;text-align:center;text-decoration:none;color:var(--txt);background:var(--white);transition:all .2s;display:block;}
-.cat-item:hover{border-color:var(--blue);box-shadow:var(--shadow2);transform:translateY(-2px);color:var(--blue);}
-.cat-item i{display:block;font-size:22px;margin-bottom:8px;}
-.cat-item span{font-size:13px;font-weight:600;}
+.logo-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--txt-main);
+  text-decoration: none;
+}
 
-/* 네비 카드 */
-.map-frame{background:linear-gradient(135deg,var(--teal-lt),var(--blue-lt));border:1.5px dashed var(--teal-md);border-radius:var(--r2);padding:28px;text-align:center;margin-bottom:14px;}
-.map-icon{font-size:44px;margin-bottom:10px;}
-.map-title{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:6px;}
-.map-note{font-size:13px;color:var(--txt3);line-height:1.7;}
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--sky-primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+}
 
-/* 로그인 버튼들 */
-.btn-login-teal{display:block;width:100%;text-align:center;background:var(--teal);color:white;border:none;border-radius:var(--r);padding:13px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;transition:background .15s;margin-bottom:8px;}
-.btn-login-teal:hover{background:#0b7b70;color:white;}
-.btn-login-blue{display:block;width:100%;text-align:center;background:var(--blue);color:white;border:none;border-radius:var(--r);padding:13px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;transition:background .15s;margin-bottom:8px;}
-.btn-login-blue:hover{background:#1647c0;color:white;}
+.logo-brand em { color: var(--sky-primary); font-style: normal; font-weight: 700; }
 
-/* FOOTER */
-.site-footer{border-top:1px solid var(--line);padding:22px 32px;background:var(--white);margin-top:60px;}
-.footer-inner{max-width:1380px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
-.footer-logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:var(--txt);text-decoration:none;}
-.footer-logo em{color:var(--blue);font-style:normal;}
-.footer-logo-dot{width:24px;height:24px;border-radius:6px;background:var(--blue);display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.footer-logo-dot img{width:100%;height:100%;object-fit:contain;}
-.footer-team{font-family:var(--mono);font-size:12px;color:var(--txt3);text-align:center;line-height:1.8;}
-.footer-team strong{color:var(--blue);}
-.footer-copy{font-family:var(--mono);font-size:12px;color:var(--txt3);text-align:right;line-height:1.8;}
+.header-right { display: flex; gap: 12px; align-items: center; }
 
-@media(max-width:1100px){.main-grid{grid-template-columns:1fr;}.cat-grid{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:768px){.topnav{padding:12px 16px;}.shell{padding:16px 16px 48px;}.hero{grid-template-columns:1fr;padding:26px 22px;}.hero::after{display:none;}.hero-side{display:none;}.cat-grid{grid-template-columns:repeat(3,1fr);}}
+.badge-role {
+  background: var(--border);
+  color: var(--txt-muted);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.btn-logout {
+  background: var(--sky-primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-logout:hover {
+  background: var(--sky-hover);
+  color: white;
+}
+
+.theme-toggle {
+  background: var(--border);
+  color: var(--txt-main);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.theme-toggle:hover {
+  background: var(--border-dark);
+}
+
+/* Main Content */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(180deg, #dbeafe 0%, #e0f2fe 18%, #f0f4f9 45%, #f0f4f9 100%);
+  border-radius: var(--radius-lg);
+  padding: 48px;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .hero-section {
+  background: linear-gradient(135deg, #0f172a 0%, #164e63 40%, #0d6147 100%);
+}
+
+.hero-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--txt-main);
+  margin-bottom: 12px;
+}
+
+[data-theme="dark"] .hero-title {
+  color: #ffffff;
+}
+
+.hero-title em { color: var(--emerald-primary); font-style: normal; }
+[data-theme="dark"] .hero-title em { color: #4ade80; }
+
+.hero-desc {
+  font-size: 16px;
+  color: var(--txt-sub);
+  margin-bottom: 24px;
+  line-height: 1.7;
+}
+
+[data-theme="dark"] .hero-desc {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* Search Bar */
+.search-container {
+  display: flex;
+  gap: 8px;
+  max-width: 520px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1.5px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  padding: 8px 8px 8px 16px;
+  transition: all 0.2s;
+}
+
+[data-theme="dark"] .search-container {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.search-container:focus-within {
+  border-color: var(--sky-primary);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+[data-theme="dark"] .search-container:focus-within {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.search-container input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--txt-main);
+  font-size: 15px;
+}
+
+[data-theme="dark"] .search-container input {
+  color: #f1f5f9;
+}
+
+.search-container input::placeholder {
+  color: var(--txt-muted);
+}
+
+.btn-search {
+  background: var(--sky-primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.btn-search:hover {
+  background: var(--sky-hover);
+}
+
+/* Grid Layout */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+}
+
+/* Card */
+.card-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: all 0.2s;
+}
+
+.card-box:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--sky-bg);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--sky-primary);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .card-icon {
+  background: var(--sky-bg);
+  color: #38bdf8;
+}
+
+.card-header-text h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--txt-main);
+  margin: 0;
+}
+
+.card-header-text p {
+  font-size: 13px;
+  color: var(--txt-muted);
+  margin: 4px 0 0;
+}
+
+.card-body {
+  padding: 24px;
+}
+
+/* Category Grid */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.category-item {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 12px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--txt-main);
+  background: var(--surface);
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.category-item:hover {
+  border-color: var(--sky-primary);
+  color: var(--sky-primary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.category-item i {
+  font-size: 24px;
+}
+
+.category-item span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Info Box */
+.info-alert {
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+[data-theme="dark"] .info-alert {
+  background: #3a3a1f;
+  border-color: #56540a;
+}
+
+.info-alert i {
+  font-size: 20px;
+  color: var(--amber-main);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-alert-title {
+  font-weight: 700;
+  color: var(--amber-main);
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.info-alert-text {
+  font-size: 14px;
+  color: var(--txt-sub);
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .info-alert-text {
+  color: #cbd5e1;
+}
+
+.info-alert-text a {
+  color: var(--sky-primary);
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+}
+
+/* Map Frame */
+.map-frame {
+  background: linear-gradient(135deg, var(--emerald-bg), var(--sky-bg));
+  border: 1.5px dashed var(--sky-light);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  text-align: center;
+}
+
+[data-theme="dark"] .map-frame {
+  background: linear-gradient(135deg, #0d2d24, #0c2d42);
+  border-color: #0c4a6e;
+}
+
+.map-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.map-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--txt-main);
+  margin-bottom: 8px;
+}
+
+[data-theme="dark"] .map-title {
+  color: #ffffff;
+}
+
+.map-desc {
+  font-size: 14px;
+  color: var(--txt-sub);
+  line-height: 1.7;
+}
+
+[data-theme="dark"] .map-desc {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Footer */
+.app-footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 32px 24px;
+  margin-top: 60px;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--txt-main);
+  text-decoration: none;
+}
+
+.footer-logo em {
+  color: var(--sky-primary);
+  font-style: normal;
+}
+
+.footer-info {
+  font-size: 13px;
+  color: var(--txt-muted);
+  text-align: center;
+  line-height: 1.7;
+}
+
+.footer-copy {
+  font-size: 13px;
+  color: var(--txt-muted);
+  text-align: right;
+  line-height: 1.7;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .content-grid { grid-template-columns: 1fr; }
+  .category-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .app-header { padding: 12px 16px; }
+  .app-container { padding: 16px 16px 48px; }
+  .hero-section { padding: 28px 20px; }
+  .hero-title { font-size: 24px; }
+  .category-grid { grid-template-columns: repeat(3, 1fr); }
+  .footer-inner { flex-direction: column; text-align: center; }
+  .footer-copy { text-align: center; }
+}
+
+/* Dark Mode Specific */
+[data-theme="dark"] .card-icon {
+  background: #0c2d42;
+}
+
+[data-theme="dark"] .info-alert {
+  background: #3a3a1f;
+  border-color: #56540a;
+}
+
+[data-theme="dark"] .info-alert i {
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .info-alert-title {
+  color: #fbbf24;
+}
 </style>
 </head>
 <body>
 
-<nav class="topnav">
-  <a href="/CampusNav/main_guest.jsp" class="logo">
-    <span class="logo-dot"><img src="/CampusNav/images/logo.png" alt="ICT"></span>
-    ICT Campus<em>Nav</em>
+<header class="app-header">
+  <a href="/CAN/main_guest.jsp" class="logo-brand">
+    <span class="logo-icon">🧭</span>
+    CAN <em>내비</em>
   </a>
-  <div class="nav-right">
-    <span class="role-chip">게스트</span>
-    <a href="/CampusNav/guest_to_login.jsp" class="chip chip-blue">
+  <div class="header-right">
+    <span class="badge-role">게스트</span>
+    <a href="/CAN/guest_to_login.jsp" class="btn-logout">
       <i class="bi bi-box-arrow-in-right"></i> 로그인
     </a>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
   </div>
-</nav>
+</header>
 
-<div class="shell">
+<div class="app-container">
 
-  <div class="hero">
-    <div class="hero-content">
-      <div class="hero-eyebrow">// ICT CAMPUSNAV · 게스트 모드</div>
-      <div class="hero-title">교내 자원을 <em>검색</em>하세요</div>
-      <div class="hero-desc">로그인 없이 자산 검색 및 상세보기가 가능합니다.<br>예약 및 길안내는 로그인 후 이용하세요.</div>
-      <form method="get" action="/CampusNav/search.jsp" style="position:relative;z-index:2">
-        <div class="search-wrap">
-          <input type="text" name="keyword" placeholder="자산번호, 품목명, 위치 검색...">
-          <button type="submit" class="btn-search"><i class="bi bi-search me-1"></i>검색</button>
-        </div>
-      </form>
-    </div>
-    <div class="hero-side">👁</div>
+  <div class="hero-section">
+    <div class="hero-title">교내 자원을 <em>검색</em>하세요</div>
+    <div class="hero-desc">로그인 없이 자산 검색 및 상세보기가 가능합니다.<br>예약 및 길안내는 로그인 후 이용하세요.</div>
+    <form method="get" action="/CAN/search.jsp">
+      <div class="search-container">
+        <input type="text" name="keyword" placeholder="자산번호, 품목명, 위치 검색...">
+        <button type="submit" class="btn-search"><i class="bi bi-search"></i>검색</button>
+      </div>
+    </form>
   </div>
 
-  <div class="main-grid">
+  <div class="content-grid">
     <div>
-      <div class="card">
-        <div class="card-head">
-          <div class="ch-icon si-blue"><i class="bi bi-grid-3x3-gap" style="color:var(--blue)"></i></div>
-          <div><div class="ch-title">카테고리별 검색</div><div class="ch-sub">분류별로 바로 검색하세요</div></div>
+      <div class="card-box">
+        <div class="card-header">
+          <div class="card-icon"><i class="bi bi-grid-3x3-gap"></i></div>
+          <div class="card-header-text">
+            <h3>카테고리별 검색</h3>
+            <p>분류별로 바로 검색하세요</p>
+          </div>
         </div>
         <div class="card-body">
-          <div class="cat-grid">
-            <a href="/CampusNav/search.jsp?type=공기구비품" class="cat-item">
-              <i class="bi bi-tools" style="color:var(--blue)"></i><span>공기구비품</span>
+          <div class="category-grid">
+            <a href="/CAN/search.jsp?type=공기구비품" class="category-item">
+              <i class="bi bi-tools" style="color: var(--sky-primary)"></i>
+              <span>공기구비품</span>
             </a>
-            <a href="/CampusNav/search.jsp?type=집기비품" class="cat-item">
-              <i class="bi bi-laptop" style="color:var(--teal)"></i><span>집기비품</span>
+            <a href="/CAN/search.jsp?type=집기비품" class="category-item">
+              <i class="bi bi-laptop" style="color: var(--emerald-primary)"></i>
+              <span>집기비품</span>
             </a>
-            <a href="/CampusNav/search.jsp?type=무형고정자산" class="cat-item">
-              <i class="bi bi-code-square" style="color:var(--purple)"></i><span>소프트웨어</span>
+            <a href="/CAN/search.jsp?type=무형고정자산" class="category-item">
+              <i class="bi bi-code-square" style="color: #7c3aed"></i>
+              <span>소프트웨어</span>
             </a>
-            <a href="/CampusNav/search.jsp?keyword=공학관" class="cat-item">
-              <i class="bi bi-building" style="color:var(--amber)"></i><span>공학관</span>
+            <a href="/CAN/search.jsp?keyword=공학관" class="category-item">
+              <i class="bi bi-building" style="color: var(--amber-main)"></i>
+              <span>공학관</span>
             </a>
-            <a href="/CampusNav/professor.jsp" class="cat-item">
-              <i class="bi bi-people" style="color:var(--teal)"></i><span>교수 자원</span>
+            <a href="/CAN/professor.jsp" class="category-item">
+              <i class="bi bi-people" style="color: var(--emerald-primary)"></i>
+              <span>교수 자원</span>
             </a>
-            <a href="/CampusNav/search.jsp" class="cat-item">
-              <i class="bi bi-grid" style="color:var(--txt3)"></i><span>전체보기</span>
+            <a href="/CAN/search.jsp" class="category-item">
+              <i class="bi bi-grid"></i>
+              <span>전체보기</span>
             </a>
           </div>
         </div>
       </div>
 
-      <div style="background:var(--amber-lt);border:1.5px solid #fde68a;border-radius:var(--r2);padding:18px 22px;display:flex;align-items:center;gap:14px;">
-        <i class="bi bi-info-circle-fill" style="font-size:20px;color:var(--amber);flex-shrink:0"></i>
+      <div class="info-alert">
+        <i class="bi bi-info-circle-fill"></i>
         <div>
-          <div style="font-weight:700;font-size:15px;color:var(--amber);margin-bottom:4px">게스트 이용 안내</div>
-          <div style="font-size:14px;color:var(--txt2)">
+          <div class="info-alert-title">게스트 이용 안내</div>
+          <div class="info-alert-text">
             게스트는 <strong>검색·상세보기</strong>만 가능합니다.
-            <a href="/CampusNav/guest_to_login.jsp" style="color:var(--blue);font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-left:6px">
-              <i class="bi bi-box-arrow-in-right"></i>로그인하여 예약 및 길찾기 →
-            </a>
+            <a href="/CAN/guest_to_login.jsp"><i class="bi bi-box-arrow-in-right"></i>로그인하여 예약 및 길찾기</a>
           </div>
         </div>
       </div>
     </div>
 
     <div>
-      <div class="card">
-        <div class="card-head">
-          <div class="ch-icon si-teal"><i class="bi bi-compass" style="color:var(--teal)"></i></div>
-          <div><div class="ch-title">실내 네비게이션</div><div class="ch-sub">로그인 후 이용 가능</div></div>
+      <div class="card-box">
+        <div class="card-header">
+          <div class="card-icon"><i class="bi bi-compass"></i></div>
+          <div class="card-header-text">
+            <h3>실내 네비게이션</h3>
+            <p>로그인 후 이용 가능</p>
+          </div>
         </div>
         <div class="card-body">
           <div class="map-frame">
             <div class="map-icon">🧭</div>
             <div class="map-title">캠퍼스 길찾기</div>
-            <div class="map-note">로그인 후 현재 위치 기준<br>실내 경로 안내를 이용할 수 있습니다</div>
+            <div class="map-desc">로그인 후 현재 위치 기준<br>실내 경로 안내를 이용할 수 있습니다</div>
           </div>
-          <!-- 로그인하여 길찾기 버튼 -->
-          <a href="/CampusNav/guest_to_login.jsp" class="btn-login-teal">
-            <i class="bi bi-box-arrow-in-right me-1"></i>로그인하여 길찾기
-          </a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <div class="ch-icon si-blue"><i class="bi bi-person-circle" style="color:var(--blue)"></i></div>
-          <div><div class="ch-title">더 많은 기능 이용하기</div><div class="ch-sub">로그인하면 모든 기능 사용 가능</div></div>
-        </div>
-        <div class="card-body">
-          <ul style="list-style:none;padding:0;margin:0 0 18px">
-            <li style="padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;display:flex;align-items:center;gap:8px"><i class="bi bi-check-circle-fill" style="color:var(--green)"></i>자원 예약 신청</li>
-            <li style="padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;display:flex;align-items:center;gap:8px"><i class="bi bi-check-circle-fill" style="color:var(--green)"></i>실내 네비게이션 (GPS 연동)</li>
-            <li style="padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;display:flex;align-items:center;gap:8px"><i class="bi bi-check-circle-fill" style="color:var(--green)"></i>교수 자원 협력 요청</li>
-            <li style="padding:8px 0;font-size:14px;display:flex;align-items:center;gap:8px"><i class="bi bi-check-circle-fill" style="color:var(--green)"></i>자원 상세 정보 및 이관이력</li>
-          </ul>
-          <!-- 재학생 로그인 버튼 -->
-          <a href="/CampusNav/guest_to_login.jsp" class="btn-login-blue">
-            <i class="bi bi-box-arrow-in-right me-1"></i>재학생·교직원 로그인
-          </a>
-          <!-- 외부인 입장 버튼 -->
-          <a href="/CampusNav/visitor" class="btn-login-teal">
-            <i class="bi bi-person-walking me-1"></i>외부인 입장 (예약·길찾기)
-          </a>
-          <a href="/CampusNav/register.jsp" style="display:block;text-align:center;margin-top:10px;font-size:13px;color:var(--blue);text-decoration:none;font-weight:600">
-            <i class="bi bi-person-plus me-1"></i>회원가입
-          </a>
         </div>
       </div>
     </div>
@@ -244,22 +638,44 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
 
 </div>
 
-<footer class="site-footer">
+<footer class="app-footer">
   <div class="footer-inner">
-    <a href="/CampusNav/guest_to_login.jsp" class="footer-logo">
-      <span class="footer-logo-dot"><img src="/CampusNav/images/logo.png" alt="ICT"></span>
-      ICT Campus<em>Nav</em>
+    <a href="/CAN/main_guest.jsp" class="footer-logo">
+      CAN <em>내비</em>
     </a>
-    <div class="footer-team">
+    <div class="footer-info">
       <strong>Made by AI 소프트웨어학과</strong><br>
-      박승순 &nbsp;&middot;&nbsp; 권동해 &nbsp;&middot;&nbsp; 원태연 &nbsp;&middot;&nbsp; 이수혁
+      박승순 · 권동해 · 원태연 · 이수혁
     </div>
     <div class="footer-copy">
       ICT폴리텍대학 교내 자원 내비게이션 시스템<br>
-      Copyright &copy; 2026 ICT CampusNav. All rights reserved.
+      Copyright © 2026 ICT CAN. All rights reserved.
     </div>
   </div>
 </footer>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  const currentTheme = html.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  updateThemeIcon();
+}
+
+function updateThemeIcon() {
+  const theme = document.documentElement.getAttribute('data-theme');
+  const btn = document.querySelector('.theme-toggle');
+  btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon();
+});
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

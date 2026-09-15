@@ -7,17 +7,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class LoginServlet extends HttpServlet {
-
-    private static final String[][] USERS = {
-        { "student1", "pass1234", "홍길동",   "student"   },
-        { "assist1",  "asst1234", "김조교",   "assistant" },
-        { "prof1",    "prof1234", "이교수",   "professor" },
-        { "admin",    "1234",     "박관리자", "admin"     },
-        { "guest1",   "guest123", "방문객",   "guest"     },
-        { "visitor1", "visit123", "외부방문자", "visitor" }
-    };
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -25,10 +19,14 @@ public class LoginServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         HttpSession session = req.getSession(false);
         if (session != null && session.getAttribute("loginUser") != null) {
-            goToRolePage((String) session.getAttribute("loginRole"), resp);
-            return;
+            String role = (String) session.getAttribute("loginRole");
+            if ("guest".equals(role)) {
+                session.invalidate();
+            } else {
+                goToRolePage(role, resp); return;
+            }
         }
-        req.getRequestDispatcher("/CampusNav/campuslogin.jsp").forward(req, resp);
+        req.getRequestDispatcher("/campuslogin.jsp").forward(req, resp);
     }
 
     @Override
@@ -36,36 +34,69 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
 
-        String userId = req.getParameter("userId");
-        String userPw = req.getParameter("userPw");
-        String saveId = req.getParameter("saveId");
+        String userId      = req.getParameter("userId");
+        String userPw      = req.getParameter("userPw");
+        String saveId      = req.getParameter("saveId");
+        String selectedRole = req.getParameter("selectedRole");
 
         if (userId == null) userId = "";
         if (userPw == null) userPw = "";
+        if (selectedRole == null) selectedRole = "";
         userId = userId.trim();
         userPw = userPw.trim();
+        selectedRole = selectedRole.trim();
 
-        String[] found = null;
-        for (String[] u : USERS) {
-            if (u[0].equals(userId) && u[1].equals(userPw)) {
-                found = u;
-                break;
+        String foundName = null, foundRole = null;
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            ps = conn.prepareStatement(
+                "SELECT user_name, role FROM users WHERE user_id=? AND user_pw=? AND use_yn='Y'");
+            ps.setString(1, userId);
+            ps.setString(2, userPw);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                foundName = rs.getString("user_name");
+                foundRole = rs.getString("role");
             }
+        } catch (Exception e) {
+            System.err.println("LoginServlet DB error: " + e.getMessage());
+        } finally {
+            DBUtil.close(rs, ps, conn);
         }
 
-        if (found == null) {
-            req.setAttribute("errorMsg", "아이디, 비밀번호가 틀렸습니다.");
+        // 아이디/비밀번호 불일치
+        if (foundName == null) {
+            req.setAttribute("errorMsg", "아이디 또는 비밀번호가 틀렸습니다.");
             req.setAttribute("prevId", userId);
-            req.getRequestDispatcher("/CampusNav/campuslogin.jsp").forward(req, resp);
+            req.getRequestDispatcher("/campuslogin.jsp").forward(req, resp);
+            return;
+        }
+
+        // 역할 미선택 체크
+        if (selectedRole.isEmpty()) {
+            req.setAttribute("errorMsg", "역할을 선택해 주세요.");
+            req.setAttribute("prevId", userId);
+            req.getRequestDispatcher("/campuslogin.jsp").forward(req, resp);
+            return;
+        }
+
+        // 선택 역할과 DB 역할 불일치
+        if (!selectedRole.isEmpty() && !selectedRole.equals(foundRole)) {
+            req.setAttribute("errorMsg", "선택한 역할과 계정 유형이 일치하지 않습니다.");
+            req.setAttribute("prevId", userId);
+            req.getRequestDispatcher("/campuslogin.jsp").forward(req, resp);
             return;
         }
 
         HttpSession old = req.getSession(false);
         if (old != null) old.invalidate();
         HttpSession session = req.getSession(true);
-        session.setAttribute("loginUser", found[0]);
-        session.setAttribute("loginName", found[2]);
-        session.setAttribute("loginRole", found[3]);
+        session.setAttribute("loginUser", userId);
+        session.setAttribute("loginName", foundName);
+        session.setAttribute("loginRole", foundRole);
         session.setMaxInactiveInterval(30 * 60);
 
         if ("on".equals(saveId)) {
@@ -80,22 +111,18 @@ public class LoginServlet extends HttpServlet {
             resp.addCookie(c);
         }
 
-        goToRolePage(found[3], resp);
+        goToRolePage(foundRole, resp);
     }
 
     private void goToRolePage(String role, HttpServletResponse resp) throws IOException {
-        if ("student".equals(role)) {
-            resp.sendRedirect("/CampusNav/main_student.jsp");
-        } else if ("assistant".equals(role)) {
-            resp.sendRedirect("/CampusNav/main_assistant.jsp");
-        } else if ("professor".equals(role)) {
-            resp.sendRedirect("/CampusNav/main_professor.jsp");
-        } else if ("admin".equals(role)) {
-            resp.sendRedirect("/CampusNav/main_admin.jsp");
-        } else if ("visitor".equals(role)) {
-            resp.sendRedirect("/CampusNav/main_visitor.jsp");
-        } else {
-            resp.sendRedirect("/CampusNav/main_guest.jsp");
+        if (role == null) role = "guest";
+        switch (role) {
+            case "student":   resp.sendRedirect("/CAN/main_student.jsp");   break;
+            case "assistant": resp.sendRedirect("/CAN/main_assistant.jsp"); break;
+            case "professor": resp.sendRedirect("/CAN/main_professor.jsp"); break;
+            case "admin":     resp.sendRedirect("/CAN/main_admin.jsp");     break;
+            case "visitor":   resp.sendRedirect("/CAN/main_visitor.jsp");   break;
+            default:          resp.sendRedirect("/CAN/main_guest.jsp");     break;
         }
     }
 }

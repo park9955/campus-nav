@@ -19,7 +19,7 @@ public class AssetServlet extends HttpServlet {
 
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("loginUser") == null) {
-            resp.sendRedirect("/CampusNav/campuslogin.jsp");
+            resp.sendRedirect("/CAN/campuslogin.jsp");
             return;
         }
 
@@ -28,14 +28,14 @@ public class AssetServlet extends HttpServlet {
 
         // 권한 체크 (학부생/게스트는 불가)
         if ("student".equals(role) || "guest".equals(role)) {
-            resp.sendRedirect("/CampusNav/main_student.jsp");
+            resp.sendRedirect("/CAN/main_student.jsp");
             return;
         }
 
         if      ("insert".equals(action)) doInsert(req, resp, role);
         else if ("update".equals(action)) doUpdate(req, resp);
         else if ("delete".equals(action)) doDelete(req, resp, role);
-        else resp.sendRedirect("/CampusNav/main_" + role + ".jsp");
+        else resp.sendRedirect("/CAN/main_" + role + ".jsp");
     }
 
     /** 자산 등록 */
@@ -73,7 +73,7 @@ public class AssetServlet extends HttpServlet {
             ps.setString(19, req.getParameter("assetStatus"));
             ps.setString(20, req.getParameter("remark"));
             ps.executeUpdate();
-            resp.sendRedirect("/CampusNav/main_" + role + ".jsp?msg=등록완료");
+            resp.sendRedirect("/CAN/main_" + role + ".jsp?msg=등록완료");
         } catch (Exception e) {
             System.err.println("자산등록 오류: " + e.getMessage());
             req.setAttribute("errorMsg", "등록 중 오류: " + e.getMessage());
@@ -114,10 +114,10 @@ public class AssetServlet extends HttpServlet {
             ps.setString(15, req.getParameter("remark"));
             ps.setString(16, req.getParameter("assetNo"));
             ps.executeUpdate();
-            resp.sendRedirect("/CampusNav/detail?id=" + req.getParameter("assetNo") + "&msg=수정완료");
+            resp.sendRedirect("/CAN/detail?id=" + req.getParameter("assetNo") + "&msg=수정완료");
         } catch (Exception e) {
             System.err.println("자산수정 오류: " + e.getMessage());
-            resp.sendRedirect("/CampusNav/main_" + role + ".jsp?error=수정오류");
+            resp.sendRedirect("/CAN/main_" + role + ".jsp?error=수정오류");
         } finally {
             DBUtil.close(ps, conn);
         }
@@ -127,7 +127,7 @@ public class AssetServlet extends HttpServlet {
     private void doDelete(HttpServletRequest req, HttpServletResponse resp, String role)
             throws IOException {
         if (!"admin".equals(role)) {
-            resp.sendRedirect("/CampusNav/main_" + role + ".jsp");
+            resp.sendRedirect("/CAN/main_" + role + ".jsp");
             return;
         }
         String assetNo = req.getParameter("assetNo");
@@ -149,10 +149,10 @@ public class AssetServlet extends HttpServlet {
             ps = conn.prepareStatement("DELETE FROM assets WHERE asset_no=?");
             ps.setString(1, assetNo);
             ps.executeUpdate();
-            resp.sendRedirect("/CampusNav/search?msg=삭제완료");
+            resp.sendRedirect("/CAN/search?msg=삭제완료");
         } catch (Exception e) {
             System.err.println("자산삭제 오류: " + e.getMessage());
-            resp.sendRedirect("/CampusNav/main_admin.jsp?error=삭제오류");
+            resp.sendRedirect("/CAN/main_admin.jsp?error=삭제오류");
         } finally {
             DBUtil.close(ps, conn);
         }

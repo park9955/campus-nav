@@ -22,13 +22,13 @@ public class DetailServlet extends HttpServlet {
 
         if (req.getSession(false) == null ||
             req.getSession(false).getAttribute("loginUser") == null) {
-            resp.sendRedirect("/CampusNav/campuslogin.jsp");
+            resp.sendRedirect("/CAN/campuslogin.jsp");
             return;
         }
 
         String assetNo = req.getParameter("id");
         if (assetNo == null || assetNo.trim().isEmpty()) {
-            resp.sendRedirect("/CampusNav/search");
+            resp.sendRedirect("/CAN/search");
             return;
         }
 

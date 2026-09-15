@@ -18,7 +18,7 @@ public class ReserveServlet extends HttpServlet {
 
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("loginUser") == null) {
-            resp.sendRedirect("/CampusNav/campuslogin.jsp");
+            resp.sendRedirect("/CAN/campuslogin.jsp");
             return;
         }
 
@@ -55,7 +55,7 @@ public class ReserveServlet extends HttpServlet {
             ps.setString(7, phone);
             ps.setString(8, note);
             ps.executeUpdate();
-            resp.sendRedirect("/CampusNav/reserve.jsp?id=" + assetNo + "&success=true");
+            resp.sendRedirect("/CAN/reserve.jsp?id=" + assetNo + "&success=true");
         } catch (Exception e) {
             System.err.println("예약 DB 오류: " + e.getMessage());
             req.setAttribute("errorMsg", "예약 처리 중 오류가 발생했습니다.");

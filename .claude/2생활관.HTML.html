@@ -1,0 +1,273 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.viewer { padding: 1rem 0; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding: 0 0.5rem; }
+.title-block h2 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.title-block p { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+.floor-tabs { display: flex; gap: 6px; }
+.tab-btn { padding: 6px 16px; font-size: 13px; font-weight: 500; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.tab-btn.active { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+.tab-btn:hover:not(.active) { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.floor-panel { display: none; }
+.floor-panel.active { display: block; }
+.plan-wrapper { overflow-x: auto; }
+.floor-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; letter-spacing: 0.05em; }
+.plan-grid { display: grid; border: 1px solid #888780; background: var(--color-background-primary); }
+.room { border: 0.5px solid #B4B2A9; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center; cursor: pointer; transition: background 0.15s; }
+.room:hover { filter: brightness(0.94); }
+.room-num { font-size: 10px; font-weight: 500; color: #3C3489; line-height: 1.2; }
+.room-size { font-size: 9px; color: #5F5E5A; margin-top: 1px; }
+.room-name { font-size: 9px; color: #3B6D11; margin-top: 2px; font-weight: 500; }
+.room.corridor { background: #F1EFE8; }
+.room.corridor .room-name { color: #5F5E5A; font-size: 10px; }
+.room.stair { background: #D3D1C7; }
+.room.toilet { background: #E6F1FB; }
+.room.toilet .room-name { color: #0C447C; }
+.room.special { background: #EEEDFE; }
+.room.special .room-name { color: #3C3489; font-size: 9px; }
+.room.dorm { background: #EAF3DE; }
+.room.entry { background: #FAEEDA; }
+.room.entry .room-name { color: #633806; }
+.tooltip { position: fixed; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 8px 12px; font-size: 12px; pointer-events: none; z-index: 999; display: none; max-width: 200px; }
+.tooltip .t-num { font-weight: 500; font-size: 13px; color: var(--color-text-primary); }
+.tooltip .t-size { color: var(--color-text-secondary); margin-top: 2px; }
+.tooltip .t-name { color: #0F6E56; font-weight: 500; margin-top: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 0 0.5rem; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+.legend-dot { width: 12px; height: 12px; border: 0.5px solid #B4B2A9; border-radius: 2px; flex-shrink: 0; }
+</style>
+
+<div class="viewer">
+  <div class="header">
+    <div class="title-block">
+      <h2>2생활관 건물배치도</h2>
+      <p>층을 선택하여 평면도를 확인하세요</p>
+    </div>
+    <div class="floor-tabs">
+      <button class="tab-btn active" onclick="showFloor(event,'f1')">1층</button>
+      <button class="tab-btn" onclick="showFloor(event,'f2')">2층</button>
+    </div>
+  </div>
+
+  <!-- ===== 1층 =====
+    구조: 
+    상단(row1): 2102 | 2104 | 2106 | 샤워실 | [화장실/세면장(돌출)] | 계단들 |
+    복도(row2): 전체 연결
+    하단(row3): 2101 | 2103 | 2105 | 2107 | 현관 | 사감실 | 보건실
+
+    cols: 2101/2102(90px) | 2103/2104(75px) | 2105/2106(75px) | 2107/샤워실(75px) | 현관(90px) | 계단1(30px) | 계단2(30px) | 계단3(30px) | 계단4(30px) | 사감실(75px) | 보건실(75px)
+    화장실/세면장은 col5~6 상단 돌출(row0 같은 느낌) → 별도 div로 위에 배치
+  -->
+  <div id="f1" class="floor-panel active">
+    <div class="floor-label">• 1층</div>
+    <div class="plan-wrapper">
+      <div style="min-width:700px;">
+
+        <!-- 화장실/세면장 돌출 블록 -->
+        <div style="display:grid; grid-template-columns: 90px 75px 75px 75px 105px 120px 75px 75px; margin-left:0;">
+          <div style="grid-column:1/5;"></div>
+          <div class="room toilet" style="grid-column:5; border:1px solid #888780; height:48px;"
+            onmouseenter="tip(event,'화장실/세면장','','21m²','화장실/세면장')" onmouseleave="hidetip()">
+            <div class="room-name" style="font-size:8px;">화장실/세면장</div>
+            <div class="room-size">21m²</div>
+          </div>
+          <div style="grid-column:6/9;"></div>
+        </div>
+
+        <!-- 메인 그리드 -->
+        <div class="plan-grid" style="
+          grid-template-columns: 90px 75px 75px 75px 105px 30px 30px 30px 30px 75px 75px;
+          grid-template-rows: 80px 30px 80px;
+        ">
+
+          <!-- 상단 row1 -->
+          <div class="room dorm" style="grid-column:1; grid-row:1;"
+            onmouseenter="tip(event,'2102호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2102</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:2; grid-row:1;"
+            onmouseenter="tip(event,'2104호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2104</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:3; grid-row:1;"
+            onmouseenter="tip(event,'2106호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2106</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room toilet" style="grid-column:4; grid-row:1;"
+            onmouseenter="tip(event,'샤워실','4.2m×5m','21m²','샤워실')" onmouseleave="hidetip()">
+            <div class="room-name">샤워실</div><div class="room-size">21m²</div>
+          </div>
+          <!-- col5 row1: 화장실/세면장 하단 연결 (toilet색) -->
+          <div class="room toilet" style="grid-column:5; grid-row:1; border-top: none;"
+            onmouseenter="tip(event,'화장실/세면장','','21m²','화장실/세면장')" onmouseleave="hidetip()">
+            <div class="room-name" style="font-size:8px;"></div>
+          </div>
+          <!-- col6~9 row1: 계단 4개 -->
+          <div class="room stair" style="grid-column:6/10; grid-row:1;">
+            <div class="room-name" style="color:#444441; font-size:9px;">계단</div>
+          </div>
+          <!-- col10~11 row1: 비어있음(복도 위) -->
+          <div class="room corridor" style="grid-column:10/12; grid-row:1;">
+          </div>
+
+          <!-- 복도 row2: 전체 연결 -->
+          <div class="room corridor" style="grid-column:1/12; grid-row:2;">
+            <div class="room-name">복도</div>
+          </div>
+
+          <!-- 하단 row3 -->
+          <div class="room dorm" style="grid-column:1; grid-row:3; position:relative;"
+            onmouseenter="tip(event,'2101호 (4인)','4.2m×3.3m','15.54m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2101</div><div class="room-size">4.2×3.3m</div><div class="room-size">15.54m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:2; grid-row:3;"
+            onmouseenter="tip(event,'2103호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2103</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:3; grid-row:3;"
+            onmouseenter="tip(event,'2105호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2105</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:4; grid-row:3;"
+            onmouseenter="tip(event,'2107호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2107</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room entry" style="grid-column:5/10; grid-row:3;"
+            onmouseenter="tip(event,'현관','','','현관')" onmouseleave="hidetip()">
+            <div class="room-name">현관</div>
+          </div>
+          <div class="room special" style="grid-column:10; grid-row:3;"
+            onmouseenter="tip(event,'사감실','4.2m×5m','21m²','사감실')" onmouseleave="hidetip()">
+            <div class="room-name">사감실</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room special" style="grid-column:11; grid-row:3;"
+            onmouseenter="tip(event,'보건실','4.2m×5m','21m²','보건실')" onmouseleave="hidetip()">
+            <div class="room-name">보건실</div><div class="room-size">21m²</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 2층 =====
+    상단(row1): 2202 | 2204 | 2206 | 샤워실 | [화장실/세면장 돌출] | 계단들 |
+    복도(row2): 전체 연결
+    하단(row3): 2201 | 2203 | 2205 | 2207 | 2208 | 2209 | 2210
+  -->
+  <div id="f2" class="floor-panel">
+    <div class="floor-label">• 2층</div>
+    <div class="plan-wrapper">
+      <div style="min-width:750px;">
+
+        <!-- 화장실/세면장 돌출 블록 -->
+        <div style="display:grid; grid-template-columns: 90px 75px 75px 75px 105px 120px 75px 75px 75px;">
+          <div style="grid-column:1/5;"></div>
+          <div class="room toilet" style="grid-column:5; border:1px solid #888780; height:48px;"
+            onmouseenter="tip(event,'화장실/세면장','','21m²','화장실/세면장')" onmouseleave="hidetip()">
+            <div class="room-name" style="font-size:8px;">화장실/세면장</div>
+            <div class="room-size">21m²</div>
+          </div>
+          <div style="grid-column:6/10;"></div>
+        </div>
+
+        <!-- 메인 그리드 -->
+        <div class="plan-grid" style="
+          grid-template-columns: 90px 75px 75px 75px 105px 30px 30px 30px 30px 75px 75px 75px;
+          grid-template-rows: 80px 30px 80px;
+        ">
+
+          <!-- 상단 row1 -->
+          <div class="room dorm" style="grid-column:1; grid-row:1;"
+            onmouseenter="tip(event,'2202호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2202</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:2; grid-row:1;"
+            onmouseenter="tip(event,'2204호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2204</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:3; grid-row:1;"
+            onmouseenter="tip(event,'2206호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2206</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room toilet" style="grid-column:4; grid-row:1;"
+            onmouseenter="tip(event,'샤워실','4.2m×5m','21m²','샤워실')" onmouseleave="hidetip()">
+            <div class="room-name">샤워실</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room toilet" style="grid-column:5; grid-row:1; border-top:none;">
+          </div>
+          <div class="room stair" style="grid-column:6/10; grid-row:1;">
+            <div class="room-name" style="color:#444441; font-size:9px;">계단</div>
+          </div>
+          <div class="room corridor" style="grid-column:10/13; grid-row:1;">
+          </div>
+
+          <!-- 복도 row2 -->
+          <div class="room corridor" style="grid-column:1/13; grid-row:2;">
+            <div class="room-name">복도</div>
+          </div>
+
+          <!-- 하단 row3 -->
+          <div class="room dorm" style="grid-column:1; grid-row:3;"
+            onmouseenter="tip(event,'2201호 (4인)','4.2m×3.3m','15.54m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2201</div><div class="room-size">4.2×3.3m</div><div class="room-size">15.54m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:2; grid-row:3;"
+            onmouseenter="tip(event,'2203호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2203</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:3; grid-row:3;"
+            onmouseenter="tip(event,'2205호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2205</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:4; grid-row:3;"
+            onmouseenter="tip(event,'2207호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2207</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:5/10; grid-row:3;"
+            onmouseenter="tip(event,'2208호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2208</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:10; grid-row:3;"
+            onmouseenter="tip(event,'2209호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2209</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room dorm" style="grid-column:11; grid-row:3;"
+            onmouseenter="tip(event,'2210호 (4인)','4.2m×5m','21m²','')" onmouseleave="hidetip()">
+            <div class="room-num">2210</div><div class="room-size">4.2×5m</div><div class="room-size">21m²</div>
+          </div>
+          <div class="room corridor" style="grid-column:12; grid-row:3;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#EAF3DE;"></div>기숙사 호실</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#F1EFE8;"></div>복도</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#D3D1C7;"></div>계단</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#E6F1FB;"></div>화장실/샤워실</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FAEEDA;"></div>현관</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#EEEDFE;"></div>편의시설</div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+function showFloor(e, id) {
+  document.querySelectorAll('.floor-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  e.target.classList.add('active');
+}
+function tip(e, num, size, area, name) {
+  const t = document.getElementById('tooltip');
+  t.style.display = 'block';
+  t.innerHTML = '<div class="t-num">'+num+'</div>'+(size?'<div class="t-size">'+size+'</div>':'')+(area?'<div class="t-size">면적: '+area+'</div>':'')+(name?'<div class="t-name">'+name+'</div>':'');
+  t.style.left = (e.clientX+12)+'px';
+  t.style.top = (e.clientY-10)+'px';
+}
+function hidetip() { document.getElementById('tooltip').style.display='none'; }
+</script>

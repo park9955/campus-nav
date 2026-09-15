@@ -4,7 +4,7 @@
     String loginName=(String)session.getAttribute("loginName");
     String loginRole=(String)session.getAttribute("loginRole");
     if(loginUser==null||!"visitor".equals(loginRole)){
-        response.sendRedirect("/CampusNav/campuslogin.jsp"); return;
+        response.sendRedirect("/CAN/campuslogin.jsp"); return;
     }
 %>
 <!DOCTYPE html>
@@ -12,31 +12,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ICT CampusNav — 외부인</title>
+<title>ICT CAN — 외부인</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Pretendard:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700;9..40,800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+
 <style>
 
-/* ═══ TOKENS (ppd4) ═══ */
 :root {
-  --white:#ffffff; --bg:#f7f8fa; --bg2:#f0f2f5;
-  --line:#e4e7ed; --line2:#d0d5df;
-  --txt:#111827; --txt2:#4b5563; --txt3:#9ca3af;
-  --blue:#1a56db; --blue-lt:#eff4ff; --blue-md:#c7d7fd;
-  --teal:#0d9488; --teal-lt:#f0fdfa; --teal-md:#99f6e4;
-  --amber:#d97706; --amber-lt:#fffbeb;
-  --red:#dc2626; --red-lt:#fef2f2;
-  --green:#16a34a; --green-lt:#f0fdf4;
-  --purple:#7c3aed; --purple-lt:#f5f3ff;
-  --mono:'DM Mono',monospace;
-  --sans:'DM Sans','Noto Sans KR',sans-serif;
-  --r:12px; --r2:20px;
-  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
-  --shadow2:0 2px 8px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.06);
+  --bg-app: #f0f4f9;
+  --surface: #ffffff;
+
+  --txt-main: #0f172a;
+  --txt-sub: #334155;
+  --txt-muted: #64748b;
+
+  --sky-primary: #0284c7;
+  --sky-hover: #0369a1;
+  --sky-light: #e0f2fe;
+  --sky-bg: #f0f9ff;
+
+  --emerald-main: #16a34a;
+  --amber-main: #d97706;
+
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  --shadow-air: 0 20px 40px -15px rgba(2, 132, 199, 0.15);
+  --shadow-soft: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+
+  --font-main: 'Pretendard', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --border-color: rgba(226, 232, 240, 0.8);
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15px;line-height:1.6;}
+
+[data-theme="dark"] {
+  --bg-app: #0f172a;
+  --surface: #1e293b;
+  --txt-main: #f1f5f9;
+  --txt-sub: #e2e8f0;
+  --txt-muted: #cbd5e1;
+  --sky-primary: #38bdf8;
+  --sky-hover: #0ea5e9;
+  --sky-light: #0c4a6e;
+  --sky-bg: #1e3a5f;
+  --header-bg: rgba(30, 41, 59, 0.95);
+  --border-color: rgba(71, 85, 105, 0.6);
+}
+
+body {
+  font-family: var(--font-main);
+  background: linear-gradient(180deg, #dbeafe 0%, #e0f2fe 18%, #f0f4f9 45%, #f0f4f9 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--txt-main);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  transition: background 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(180deg, #0f172a 0%, #1a2f3a 40%, #1a332f 100%);
+}
+
+a { text-decoration: none; color: inherit; }
+
+.app-header {
+  background: var(--header-bg);
+  backdrop-filter: blur(16px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--txt-sub);
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+}
+
+.theme-toggle:hover {
+  background: var(--sky-bg);
+  color: var(--sky-primary);
+}
+
+.brand-logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: var(--txt-main);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-badge {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+
+.nav-link-btn {
+  font-weight: 700;
+  font-size: 0.925rem;
+  color: var(--txt-sub);
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-link-btn:hover {
+  background: var(--sky-bg);
+  color: var(--sky-primary);
+}
+
+.user-tag-pill {
+  background: var(--surface);
+  border: 1px solid #cbd5e1;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--txt-main);
+}
+
+.borderless-card { background: var(--surface); border-radius: var(--radius-xl); padding: 2rem; box-shadow: var(--shadow-soft); margin-bottom: 2rem; border: 1px solid #f1f5f9; }
+
+.f-label { font-family: var(--font-main); font-size: 0.875rem; color: var(--txt-sub); font-weight: 600; }
+.f-input { width: 100%; border: 1.5px solid #cbd5e1; border-radius: 0.5rem; padding: 0.75rem; font-size: 0.95rem; outline: none; font-family: var(--font-main); transition: all 0.2s; background: var(--surface); color: var(--txt-main); }
+.f-input:focus { border-color: var(--sky-primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+
+.app-footer { background: var(--surface); border-top: 1px solid #e2e8f0; color: var(--txt-sub); padding: 2.5rem 0; margin-top: 4rem; font-size: 0.875rem; }
 
 /* ═══ TOPNAV ═══ */
 .topnav{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:28px;}
@@ -427,35 +558,63 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
 .hero-title em { color:#4ade80 !important; font-style:normal; }
 .hero-desc    { color:rgba(255,255,255,.88) !important; }
 </style>
+
+</style>
 </head>
 <body>
 
-<!-- TOPNAV -->
-<div class="topnav" style="padding:14px 32px;">
-  <a href="/CampusNav/main_visitor.jsp" class="logo">
-    <span class="logo-dot"><img src="/CampusNav/images/logo.png" alt="ICT"></span>
-    ICT Campus<em>Nav</em>
-  </a>
-  <div class="nav-right">
-    <span style="font-family:var(--mono);font-size:13px;color:var(--txt2)">
-      <i class="bi bi-person-circle"></i> <%= loginName %>
-    </span>
-    <span class="badge-visitor">외부인</span>
-    <a href="/CampusNav/campuslogin.jsp" class="chip" style="border-color:var(--blue);color:var(--blue)">
-      <i class="bi bi-box-arrow-in-right"></i> 재학생 로그인
-    </a>
-    <form action="/CampusNav/logout" method="post" style="margin:0">
-      <button type="submit" class="chip"><i class="bi bi-box-arrow-right"></i> 나가기</button>
-    </form>
-  </div>
-</div>
+<!-- TOP NAVIGATION BAR -->
+<header class="app-header">
+  <div class="container-fluid px-4 px-md-5">
+    <nav class="navbar navbar-expand-lg py-2.5 px-0">
+      <a class="brand-logo" href="/CAN/main_visitor.jsp">
+        <i class="bi bi-compass-fill text-info fs-3"></i>
+        <span>ICT <strong>CAN</strong></span>
+        <span class="brand-badge">VISITOR</span>
+      </a>
 
-<div class="shell">
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#appNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="appNavbar">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 mt-3 mt-lg-0">
+          <li class="nav-item ms-lg-3 my-2 my-lg-0">
+            <div class="user-tag-pill">
+              <i class="bi bi-person-circle text-info fs-6"></i>
+              <span><%= loginName %> 외부인</span>
+            </div>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link-btn" href="/CAN/campuslogin.jsp"><i class="bi bi-box-arrow-in-right"></i> 재학생 로그인</a>
+          </li>
+
+          <li class="nav-item">
+            <button type="button" class="theme-toggle" onclick="toggleTheme()">
+              <i class="bi bi-moon" id="themeIcon"></i>
+            </button>
+          </li>
+
+          <li class="nav-item">
+            <form action="/CAN/logout" method="post" class="m-0">
+              <button type="submit" class="btn border-0 bg-transparent nav-link-btn text-danger">
+                <i class="bi bi-box-arrow-right"></i> 나가기
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container-xl pb-5">
 
   <!-- HERO -->
   <div class="hero">
     <div class="hero-content">
-      <div class="hero-eyebrow">// ICT CampusNav · 외부인 모드</div>
+      <div class="hero-eyebrow">// ICT CAN · 외부인 모드</div>
       <div class="hero-title">외부인 <em>예약 · 길찾기</em></div>
       <div class="hero-desc">외부 방문자는 공간 예약과 캠퍼스 길찾기만 이용 가능합니다.<br>자원 검색은 재학생 로그인 후 이용하세요.</div>
     </div>
@@ -469,7 +628,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
       <div style="font-weight:700;font-size:15px;color:var(--amber)">외부인 이용 안내</div>
       <div style="font-size:14px;color:var(--txt2);margin-top:2px">
         외부인은 <strong>공간 예약</strong>과 <strong>캠퍼스 길찾기</strong>만 이용 가능합니다.
-        자원 검색 및 상세 조회는 <a href="/CampusNav/campuslogin.jsp" style="color:var(--blue);font-weight:700;text-decoration:none">재학생 로그인 →</a>
+        자원 검색 및 상세 조회는 <a href="/CAN/campuslogin.jsp" style="color:var(--blue);font-weight:700;text-decoration:none">재학생 로그인 →</a>
       </div>
     </div>
   </div>
@@ -548,7 +707,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
         </div>
         <%}%>
 
-        <form method="post" action="/CampusNav/main_visitor.jsp" onsubmit="return checkVisitorTime()">
+        <form method="post" action="/CAN/main_visitor.jsp" onsubmit="return checkVisitorTime()">
           <input type="hidden" name="v_action" value="reserve">
           <div class="row g-3">
             <div class="col-md-6">
@@ -605,7 +764,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
       <div class="locked-title">🔒 자원 검색 — 외부인 이용 불가</div>
       <div class="locked-sub">재학생·교직원만 이용 가능한 기능입니다.</div>
       <div style="margin-top:16px">
-        <a href="/CampusNav/campuslogin.jsp" style="background:var(--blue);color:white;border:none;border-radius:var(--r);padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px">
+        <a href="/CAN/campuslogin.jsp" style="background:var(--blue);color:white;border:none;border-radius:var(--r);padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px">
           <i class="bi bi-box-arrow-in-right"></i>재학생 로그인하여 이용
         </a>
       </div>
@@ -664,7 +823,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
              style="background:var(--teal);color:white;border:none;border-radius:var(--r);padding:11px;font-size:14px;font-weight:700;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px">
             <i class="bi bi-geo-alt-fill"></i>현재 위치 길찾기
           </a>
-          <a href="/CampusNav/navigationTest1.jsp"
+          <a href="/CAN/navigationTest1.jsp"
              style="background:transparent;color:var(--txt2);border:1.5px solid var(--line2);border-radius:var(--r);padding:10px;font-size:13px;font-weight:600;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px">
             <i class="bi bi-map"></i>전체 지도 보기
           </a>
@@ -696,10 +855,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
           </li>
         </ul>
         <div style="margin-top:16px">
-          <a href="https://map.kakao.com/link/to/ICT폴리텍대학,37.396681,127.247918" target="_blank"
-             style="display:block;text-align:center;background:var(--blue);color:white;border:none;border-radius:var(--r);padding:11px;font-size:14px;font-weight:700;text-decoration:none">
-            <i class="bi bi-map me-1"></i>카카오맵으로 오시는 길 보기
-          </a>
+          
         </div>
       </div>
     </div>
@@ -707,32 +863,68 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
   </div>
   </div><!-- /row -->
 
-</div><!-- /shell -->
+</main>
 
 <!-- FOOTER -->
-<footer class="site-footer">
-  <div class="footer-inner">
-    <a href="/CampusNav/campuslogin.jsp" class="footer-logo">
-      <span class="footer-logo-dot"><img src="/CampusNav/images/logo.png" alt="ICT"></span>
-      ICT Campus<em>Nav</em>
-    </a>
-    <div class="footer-team">
-      <strong>Made by AI 소프트웨어학과</strong><br>
-      박승순 &nbsp;&middot;&nbsp; 권동해 &nbsp;&middot;&nbsp; 원태연 &nbsp;&middot;&nbsp; 이수혁
-    </div>
-    <div class="footer-copy">
-      ICT폴리텍대학 교내 자원 내비게이션 시스템<br>
-      Copyright &copy; 2026 ICT CampusNav. All rights reserved.
+<footer class="app-footer">
+  <div class="container-xl">
+    <div class="row gy-3 align-items-center">
+      <div class="col-md-6 text-center text-md-start">
+        <div class="fw-bold text-dark mb-1">
+          <i class="bi bi-compass-fill me-1 text-info"></i> ICT CAN Navigation System
+        </div>
+        <div>ICT폴리텍대학 교내 자원 내비게이션 시스템</div>
+      </div>
+      <div class="col-md-6 text-center text-md-end small">
+        <div class="text-dark fw-bold">Made by AI 소프트웨어학과</div>
+        <div>박승순 · 권동해 · 원태연 · 이수혁</div>
+        <div class="mt-1 opacity-75">&copy; 2026 ICT CAN. All rights reserved.</div>
+      </div>
     </div>
   </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// Dark Mode Toggle
+function toggleTheme(){
+  var html=document.documentElement;
+  var currentTheme=html.getAttribute('data-theme');
+  var newTheme=currentTheme==='dark'?'light':'dark';
+  html.setAttribute('data-theme',newTheme);
+  localStorage.setItem('theme',newTheme);
+  updateThemeIcon();
+}
+
+function updateThemeIcon(){
+  var icon=document.getElementById('themeIcon');
+  var html=document.documentElement;
+  var theme=html.getAttribute('data-theme');
+  if(theme==='dark'){
+    icon.className='bi bi-sun';
+  }else{
+    icon.className='bi bi-moon';
+  }
+}
+
+// Initialize theme on page load
+window.addEventListener('DOMContentLoaded',function(){
+  var savedTheme=localStorage.getItem('theme');
+  var html=document.documentElement;
+
+  if(savedTheme){
+    html.setAttribute('data-theme',savedTheme);
+  }else if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+    html.setAttribute('data-theme','dark');
+  }
+
+  updateThemeIcon();
+});
+
 /* ══ 길찾기 ══ */
 function goNav() {
   var dest = document.getElementById('navDest').value.trim();
-  var url  = '/CampusNav/navigationTest1.jsp';
+  var url  = '/CAN/navigationTest1.jsp';
   if(dest) url += '?destName=' + encodeURIComponent(dest);
   var msg = document.getElementById('navMsg');
   msg.innerHTML = '<i class="bi bi-compass me-1"></i>' +

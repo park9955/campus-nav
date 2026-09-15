@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>산학협력관 건물배치도</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --font-sans: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #5F5E5A;
+  --color-border-primary: #888780;
+  --color-border-secondary: #B4B2A9;
+  --color-border-tertiary: #D3D1C7;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #F7F6F3;
+  --radius-md: 6px;
+}
+body { font-family: var(--font-sans); background: #f4f3ef; min-height: 100vh; padding: 1.5rem; }
+.viewer { max-width: 960px; margin: 0 auto; background: var(--color-bg-primary); border-radius: 12px; padding: 1.5rem; border: 0.5px solid var(--color-border-tertiary); }
+.header { margin-bottom: 1.4rem; }
+.header h1 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.header p { font-size: 12px; color: var(--color-text-secondary); margin-top: 3px; }
+.floor-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.2rem; }
+.tab-btn { padding: 5px 14px; font-size: 13px; font-weight: 500; border: 0.5px solid var(--color-border-secondary); border-radius: var(--radius-md); background: var(--color-bg-primary); color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.tab-btn.active { background: #185FA5; border-color: #185FA5; color: #fff; }
+.tab-btn:hover:not(.active) { background: var(--color-bg-secondary); }
+.floor-panel { display: none; }
+.floor-panel.active { display: block; }
+.floor-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; letter-spacing: 0.04em; }
+.plan-wrapper { overflow-x: auto; }
+.elev-wrap { display: flex; align-items: stretch; }
+.elev-box { background: #EEEDFE; border: 1px solid var(--color-border-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #3C3489; font-weight: 500; width: 48px; flex-shrink: 0; gap: 4px; }
+.e-doors { display: flex; gap: 2px; }
+.e-door { width: 9px; height: 13px; border: 1px solid #7F77DD; border-radius: 1px; background: #AFA9EC; }
+.pg { display: grid; border: 1px solid var(--color-border-primary); background: var(--color-bg-primary); flex: 1; }
+.r { border: 0.5px solid var(--color-border-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 4px; text-align: center; min-height: 80px; }
+.rn { font-size: 9.5px; font-weight: 500; color: #185FA5; line-height: 1.2; }
+.rs { font-size: 8px; color: var(--color-text-secondary); margin-top: 2px; }
+.rm { font-size: 9px; color: #1a1a1a; margin-top: 2px; font-weight: 500; line-height: 1.4; }
+.co { background: #F1EFE8; } .co .rm { color: #5F5E5A; }
+.st { background: #D3D1C7; } .st .rm { color: #444441; font-size: 8.5px; }
+.to { background: #E6F1FB; } .to .rm { color: #0C447C; }
+.le { background: #EAF3DE; } .le .rm { color: #3B6D11; }
+.of { background: #EEEDFE; } .of .rm { color: #3C3489; }
+.gy { background: #FAECE7; } .gy .rm { color: #712B13; }
+.sg { background: #B4B2A9; } .sg .rm { color: #2C2C2A; }
+.tl { background: #E1F5EE; } .tl .rm { color: #0F6E56; }
+.am { background: #FAEEDA; } .am .rm { color: #633806; }
+.gr { background: #F1EFE8; } .gr .rm { color: #5F5E5A; }
+.gn { background: #EAF3DE; } .gn .rm { color: #3B6D11; }
+.bl { background: #E6F1FB; } .bl .rm { color: #0C447C; }
+.pk { background: #FBEAF0; } .pk .rm { color: #72243E; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 0.5px solid var(--color-border-tertiary); }
+.li { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+.ld { width: 12px; height: 12px; border: 0.5px solid var(--color-border-secondary); border-radius: 2px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="viewer">
+  <div class="header">
+    <h1>산학협력관 건물배치도</h1>
+    <p>층을 선택하여 평면도를 확인하세요</p>
+  </div>
+
+  <div class="floor-tabs">
+    <button class="tab-btn active" onclick="sf(event,'fb2')">지하2층</button>
+    <button class="tab-btn" onclick="sf(event,'fb1')">지하1층</button>
+    <button class="tab-btn" onclick="sf(event,'f1')">1층</button>
+    <button class="tab-btn" onclick="sf(event,'f2')">2층</button>
+    <button class="tab-btn" onclick="sf(event,'f3')">3층</button>
+    <button class="tab-btn" onclick="sf(event,'f4')">4층</button>
+    <button class="tab-btn" onclick="sf(event,'f5')">5층</button>
+    <button class="tab-btn" onclick="sf(event,'f6')">6층</button>
+  </div>
+
+  <!-- 지하2층 -->
+  <div class="floor-panel active" id="fb2">
+    <div class="floor-label">• 지하2층</div>
+    <div class="plan-wrapper"><div style="min-width:500px;">
+      <div class="elev-wrap">
+        <div class="elev-box" style="min-height:90px;"><div class="e-doors"><div class="e-door"></div><div class="e-door"></div></div>승강기</div>
+        <div class="pg" style="grid-template-columns:60px 1fr; grid-template-rows:90px;">
+          <div class="r st"><div class="rm">계단</div></div>
+          <div class="r gr"><div class="rm">기계식 주차장</div><div class="rs">지하2층 주차구역</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 지하1층 -->
+  <div class="floor-panel" id="fb1">
+    <div class="floor-label">• 지하1층</div>
+    <div class="plan-wrapper"><div style="min-width:500px;">
+      <div class="elev-wrap">
+        <div class="elev-box" style="min-height:180px;"><div class="e-doors"><div class="e-door"></div><div class="e-door"></div></div>승강기</div>
+        <div class="pg" style="grid-template-columns:60px 80px 100px 1fr; grid-template-rows:90px 90px;">
+          <div class="r st" style="grid-column:1;grid-row:1"><div class="rm">계단</div></div>
+          <div class="r sg" style="grid-column:2;grid-row:1"><div class="rm">창고</div></div>
+          <div class="r to" style="grid-column:3;grid-row:1"><div class="rm">장애인 화장실</div></div>
+          <div class="r bl" style="grid-column:4;grid-row:1"><div class="rm">장애인 주차구역</div><div class="rs">EL. 100.06</div></div>
+          <div class="r st" style="grid-column:1;grid-row:2"><div class="rm">계단실</div></div>
+          <div class="r gr" style="grid-column:2/5;grid-row:2"><div class="rm">주차장 (일반 주차구역)</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 1층 -->
+  <div class="floor-panel" id="f1">
+    <div class="floor-label">• 1층</div>
+    <div class="plan-wrapper"><div style="min-width:600px;">
+      <div class="elev-wrap">
+        <div class="elev-box" style="min-height:180px;"><div class="e-doors"><div class="e-door"></div><div class="e-door"></div></div>승강기</div>
+        <div class="pg" style="grid-template-columns:60px 90px 70px 60px 1fr; grid-template-rows:90px 90px;">
+          <div class="r st" style="grid-column:1;grid-row:1"><div class="rm">계단</div></div>
+          <div class="r gr" style="grid-column:2;grid-row:1"><div class="rm">방문실</div></div>
+          <div class="r to" style="grid-column:3;grid-row:1/3"><div class="rm">화장실(여)<br/>화장실(남)</div></div>
+          <div class="r co" style="grid-column:4;grid-row:1"><div class="rm">복도</div></div>
+          <div class="r tl" style="grid-column:5;grid-row:1"><div class="rm">산학협력팀</div><div class="rs">로비·홀</div></div>
+          <div class="r st" style="grid-column:1;grid-row:2"><div class="rm">계단실</div></div>
+          <div class="r gr" style="grid-column:2;grid-row:2"><div class="rm">전기실</div></div>
+          <div class="r co" style="grid-column:4;grid-row:2"><div class="rm">복도</div></div>
+          <div class="r tl" style="grid-column:5;grid-row:2"><div class="rm">산학협력팀</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 2층 -->
+  <div class="floor-panel" id="f2">
+    <div class="floor-label">• 2층</div>
+    <div class="plan-wrapper"><div style="min-width:600px;">
+      <div class="elev-wrap">
+        <div class="elev-box" style="min-height:180px;"><div class="e-doors"><div class="e-door"></div><div class="e-door"></div></div>승강기</div>
+        <div class="pg" style="grid-template-columns:60px 70px 100px 60px 1fr; grid-template-rows:90px 90px;">
+          <div class="r st" style="grid-column:1;grid-row:1"><div class="rm">계단</div></div>
+          <div class="r to" style="grid-column:2;grid-row:1/3"><div class="rm">화장실(여)<br/>화장실(남)</div></div>
+          <div class="r of" style="grid-column:3;grid-row:1"><div class="rm">처장실</div></div>
+          <div class="r co" style="grid-column:4;grid-row:1"><div class="rm">복도</div></div>
+          <div class="r gy" style="grid-column:5;grid-row:1"><div class="rm">통신방송실</div></div>
+          <div class="r st" style="grid-column:1;grid-row:2"><div class="rm">계단실</div></div>
+          <div class="r tl" style="grid-column:3;grid-row:2"><div class="rm">산학협력팀 사무실</div></div>
+          <div class="r co" style="grid-column:4;grid-row:2"><div class="rm">복도</div></div>
+          <div class="r bl" style="grid-column:5;grid-row:2"><div class="rm">강의실</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 3층 -->
+  <div class="floor-panel" id="f3">
+    <div class="floor-label">• 3층</div>
+    <div class="plan-wrapper"><div style="min-width:600px;">
+      <div class="elev-wrap">
+        <div class="elev-box" style="min-height:180px;"><div class="e-doors"><div class="e-door"></div><div class="e-door"></div></div>승강기</div>
+        <div class="pg" style="grid-template-columns:60px 70px 100px 60px 1fr; grid-template-rows:90px 90px;">
+          <div class="r st" style="grid-column:1;grid-row:1"><div class="rm">계단</div></div>
+          <div class="r to" style="grid-column:2;grid-row:1/3"><div class="rm">화장실(여)<br/>화장실(남)</div></div>
+          <div class="r of" style="grid-column:3;grid-row:1"><div class="rm">부처장실</div></div>
+          <div class="r co" style="grid-column:4;grid-row:1"><div class="rm">복도</div></div>
+          <div class="r bl" style="grid-column:5;grid-row:1"><div class="rm">강의실 (30인실)</div></div>
+          <div class="r st" style="grid-column:1;grid-row:2"><div class="rm">계단실</div></div>
+          <div class="r tl" style="grid-column:3;grid-row:2"><div class="rm">산학협력팀 사무실</div></div>
+          <div class="r co" style="grid-column:4;grid-row:2"><div class="rm">복도</div></div>
+          <div class="r bl" style="grid-column:5;grid-row:2"><div class="rm">강의실 (30인실)</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 4층 -->
+  <div class="floor-panel" id="f4">
+    <div class="floor-label">• 4층</div>
+    <div class="plan-wrapper"><div style="min-width:600px;">
+      <div class="elev-wrap">
+        <div class="elev-box" style="min-height:180px;"><div class="e-doors"><div class="e-door"></div><div class="e-door"></div></div>승강기</div>
+        <div class="pg" style="grid-template-columns:60px 70px 60px 1fr; grid-template-rows:90px 110px;">
+          <div class="r st" style="grid-column:1;grid-row:1"><div class="rm">계단</div></div>
+          <div class="r to" style="grid-column:2;grid-row:1/3"><div class="rm">화장실(여)<br/>화장실(남)</div></div>
+          <div class="r co" style="grid-column:3;grid-row:1"><div class="rm">복도</div></div>
+          <div class="r gn" style="grid-column:4;grid-row:1"><div class="rm">열람실 (60인실)</div><div class="rs">PPT 60석</div></div>
+          <div class="r st" style="grid-column:1;grid-row:2"><div class="rm">계단실</div></div>
+          <div class="r co" style="grid-column:3;grid-row:2"><div class="rm">복도</div></div>
+          <div class="r bl" style="grid-column:4;grid-row:2"><div class="rm">강의실 (30인실)</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 5층 -->
+  <div class="floor-panel" id="f5">
+    <div class="floor-label">• 5층</div>
+    <div class="plan-wrapper"><div style="min-width:650px;">
+      <div class="elev-wrap">
+        <div class="elev-box" style="min-height:210px;"><div class="e-doors"><div class="e-door"></div><div class="e-door"></div></div>승강기</div>
+        <div class="pg" style="grid-template-columns:60px 70px 110px 60px 110px 110px; grid-template-rows:90px 30px 110px;">
+          <div class="r st" style="grid-column:1;grid-row:1"><div class="rm">계단</div></div>
+          <div class="r to" style="grid-column:2;grid-row:1"><div class="rm">화장실</div></div>
+          <div class="r tl" style="grid-column:3;grid-row:1"><div class="rm">실 6</div></div>
+          <div class="r to" style="grid-column:4;grid-row:1"><div class="rm">화장실</div></div>
+          <div class="r tl" style="grid-column:5;grid-row:1"><div class="rm">실 5</div></div>
+          <div class="r tl" style="grid-column:6;grid-row:1"><div class="rm">실 4</div></div>
+          <div class="r st" style="grid-column:1;grid-row:2"></div>
+          <div class="r co" style="grid-column:2/7;grid-row:2"><div class="rm">복도</div></div>
+          <div class="r st" style="grid-column:1;grid-row:3"><div class="rm">계단실</div></div>
+          <div class="r bl" style="grid-column:2;grid-row:3"><div class="rm">실 1</div></div>
+          <div class="r to" style="grid-column:3;grid-row:3"><div class="rm">화장실</div></div>
+          <div class="r bl" style="grid-column:4;grid-row:3"><div class="rm">실 2</div></div>
+          <div class="r to" style="grid-column:5;grid-row:3"><div class="rm">화장실</div></div>
+          <div class="r bl" style="grid-column:6;grid-row:3"><div class="rm">실 3</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 6층 -->
+  <div class="floor-panel" id="f6">
+    <div class="floor-label">• 6층</div>
+    <div class="plan-wrapper"><div style="min-width:700px;">
+      <div class="elev-wrap">
+        <div class="elev-box" style="min-height:210px;"><div class="e-doors"><div class="e-door"></div><div class="e-door"></div></div>승강기</div>
+        <div class="pg" style="grid-template-columns:60px 70px 110px 60px 110px 110px 80px; grid-template-rows:90px 30px 110px;">
+          <div class="r st" style="grid-column:1;grid-row:1"><div class="rm">계단</div></div>
+          <div class="r to" style="grid-column:2;grid-row:1"><div class="rm">화장실</div></div>
+          <div class="r tl" style="grid-column:3;grid-row:1"><div class="rm">실 6</div></div>
+          <div class="r to" style="grid-column:4;grid-row:1"><div class="rm">화장실</div></div>
+          <div class="r tl" style="grid-column:5;grid-row:1"><div class="rm">실 5</div></div>
+          <div class="r tl" style="grid-column:6;grid-row:1"><div class="rm">실 4</div></div>
+          <div class="r tl" style="grid-column:7;grid-row:1"><div class="rm">실</div></div>
+          <div class="r st" style="grid-column:1;grid-row:2"></div>
+          <div class="r co" style="grid-column:2/8;grid-row:2"><div class="rm">복도</div></div>
+          <div class="r st" style="grid-column:1;grid-row:3"><div class="rm">계단실</div></div>
+          <div class="r bl" style="grid-column:2;grid-row:3"><div class="rm">실 1</div></div>
+          <div class="r to" style="grid-column:3;grid-row:3"><div class="rm">화장실</div></div>
+          <div class="r bl" style="grid-column:4;grid-row:3"><div class="rm">실 2</div></div>
+          <div class="r to" style="grid-column:5;grid-row:3"><div class="rm">화장실</div></div>
+          <div class="r bl" style="grid-column:6;grid-row:3"><div class="rm">실 3</div></div>
+          <div class="r of" style="grid-column:7;grid-row:3"><div class="rm">실</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:#E1F5EE"></div>협력팀</div>
+    <div class="li"><div class="ld" style="background:#E6F1FB"></div>강의실·열람실</div>
+    <div class="li"><div class="ld" style="background:#EAF3DE"></div>열람실(대)</div>
+    <div class="li"><div class="ld" style="background:#EEEDFE"></div>처장실</div>
+    <div class="li"><div class="ld" style="background:#FAECE7"></div>방송실</div>
+    <div class="li"><div class="ld" style="background:#FAEEDA"></div>화장실</div>
+    <div class="li"><div class="ld" style="background:#D3D1C7"></div>계단</div>
+    <div class="li"><div class="ld" style="background:#F1EFE8"></div>복도·창고</div>
+    <div class="li"><div class="ld" style="background:#EEEDFE"></div>승강기</div>
+  </div>
+</div>
+<script>
+function sf(e, id) {
+  document.querySelectorAll('.floor-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  e.target.classList.add('active');
+}
+</script>
+</body>
+</html>

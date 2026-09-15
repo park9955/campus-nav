@@ -1,0 +1,367 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.wrap { padding: 1rem 0.5rem; font-family: var(--font-sans); }
+.title-bar h2 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1rem; }
+.floor-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+.tab { padding: 5px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 13px; cursor: pointer; background: var(--color-background-secondary); color: var(--color-text-secondary); }
+.tab.active { background: #185FA5; color: #E6F1FB; border-color: #185FA5; }
+.floor-plan { display: none; }
+.floor-plan.active { display: block; }
+.floor-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px; }
+
+.building {
+  border: 1.5px solid var(--color-border-primary);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  background: var(--color-background-primary);
+  width: 100%;
+}
+
+/* 전체 행: 왼쪽실 | 중앙고정(승강기+로비) | 오른쪽실 */
+.floor-grid {
+  display: flex;
+  width: 100%;
+  min-height: 120px;
+}
+
+.left-rooms {
+  flex: 2.2;
+  border-right: 0.5px solid var(--color-border-tertiary);
+  display: flex;
+}
+
+/* 중앙 고정 컬럼: 승강기(위) + 로비(아래) */
+.center-fixed {
+  width: 80px;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  border-right: 0.5px solid var(--color-border-tertiary);
+}
+
+.elevator-box {
+  background: #EEEDFE;
+  border-bottom: 0.5px solid #CECBF6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 4px;
+  min-height: 52px;
+}
+.elevator-icon { display: flex; gap: 3px; margin-bottom: 3px; }
+.e-door { width: 11px; height: 16px; border: 1px solid #7F77DD; border-radius: 1px; background: #AFA9EC; }
+.elabel { font-size: 10px; font-weight: 500; color: #3C3489; }
+
+.lobby-box {
+  flex: 1;
+  background: var(--color-background-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.right-rooms {
+  flex: 1.4;
+  display: flex;
+  flex-direction: column;
+}
+
+.room {
+  padding: 10px 8px;
+  font-size: 11.5px;
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.room .rnum { font-size: 11px; color: var(--color-text-secondary); }
+.room .rname { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+.room .rsize { font-size: 10.5px; color: var(--color-text-tertiary); }
+.room.blue   { background: #E6F1FB; }
+.room.teal   { background: #E1F5EE; }
+.room.amber  { background: #FAEEDA; }
+.room.gray   { background: #F1EFE8; }
+.room.purple { background: #EEEDFE; }
+.room.coral  { background: #FAECE7; }
+.room.pink   { background: #FBEAF0; }
+.room.muted  { background: var(--color-background-secondary); }
+.vdivider    { border-right: 0.5px solid var(--color-border-tertiary); }
+.hdivider    { border-bottom: 0.5px solid var(--color-border-tertiary); }
+
+.legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+.leg-dot { width: 12px; height: 12px; border-radius: 3px; }
+</style>
+
+<div class="wrap">
+  <div class="title-bar"><h2>제2공학관 건물배치도</h2></div>
+  <div class="floor-tabs">
+    <div class="tab active" onclick="showFloor('b1',this)">지하</div>
+    <div class="tab" onclick="showFloor('f1',this)">1층</div>
+    <div class="tab" onclick="showFloor('f2',this)">2층</div>
+    <div class="tab" onclick="showFloor('f3',this)">3층</div>
+    <div class="tab" onclick="showFloor('f4',this)">4층</div>
+    <div class="tab" onclick="showFloor('f5',this)">5층</div>
+    <div class="tab" onclick="showFloor('f6',this)">6층</div>
+  </div>
+
+  <!-- 지하: 승강기 없음 -->
+  <div class="floor-plan active" id="b1">
+    <div class="floor-label">지하층 (승강기 없음)</div>
+    <div class="building">
+      <div class="floor-grid">
+        <div class="left-rooms">
+          <div class="room gray vdivider" style="flex:1;">
+            <div class="rname">창고 1</div>
+            <div class="rsize">(3.6m × 4.5m) 16.2㎡</div>
+          </div>
+          <div class="room teal" style="flex:2;">
+            <div class="rname">보일러실</div>
+            <div class="rsize">(6.4m × 4.2m) 26.88㎡</div>
+          </div>
+        </div>
+        <!-- 중앙: 로비만 (승강기 없음) -->
+        <div class="center-fixed">
+          <div class="lobby-box" style="flex:1;">—</div>
+        </div>
+        <div class="right-rooms">
+          <div class="room gray" style="flex:1;">
+            <div class="rname">창고 2</div>
+            <div class="rsize">(10m × 5.32m) 53.2㎡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1층 -->
+  <div class="floor-plan" id="f1">
+    <div class="floor-label">1층</div>
+    <div class="building">
+      <div class="floor-grid">
+        <div class="left-rooms">
+          <div class="room gray vdivider" style="flex:0.55;">
+            <div class="rname">창고</div>
+            <div class="rsize">(3m×4.1m) 12.3㎡</div>
+          </div>
+          <div class="room muted vdivider" style="flex:0.55;">
+            <div class="rname">정보처리실</div>
+          </div>
+          <div class="room blue" style="flex:2;">
+            <div class="rnum">2101호</div>
+            <div class="rname">네트워크실습실</div>
+            <div class="rsize">(19.96m × 9.52m) 190.02㎡</div>
+          </div>
+        </div>
+        <div class="center-fixed">
+          <div class="elevator-box">
+            <div class="elevator-icon"><div class="e-door"></div><div class="e-door"></div></div>
+            <div class="elabel">승강기</div>
+          </div>
+          <div class="lobby-box">로비</div>
+        </div>
+        <div class="right-rooms">
+          <div class="room amber hdivider" style="flex:0 0 auto; min-height:48px;">
+            <div class="rname">화장실</div>
+            <div class="rsize">(4m×5m) 20㎡</div>
+          </div>
+          <div class="room teal" style="flex:1;">
+            <div class="rnum">2102호</div>
+            <div class="rname">강의실</div>
+            <div class="rsize">(12m × 9.52m) 114.24㎡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2층 -->
+  <div class="floor-plan" id="f2">
+    <div class="floor-label">2층</div>
+    <div class="building">
+      <div class="floor-grid">
+        <div class="left-rooms">
+          <div class="room blue" style="flex:1;">
+            <div class="rnum">2201호</div>
+            <div class="rname">클라우드인터넷통신실습실</div>
+            <div class="rsize">(19.96m × 9.52m) 190.02㎡</div>
+          </div>
+        </div>
+        <div class="center-fixed">
+          <div class="elevator-box">
+            <div class="elevator-icon"><div class="e-door"></div><div class="e-door"></div></div>
+            <div class="elabel">승강기</div>
+          </div>
+          <div class="lobby-box">로비</div>
+        </div>
+        <div class="right-rooms">
+          <div class="room amber hdivider" style="flex:0 0 auto; min-height:48px;">
+            <div class="rname">화장실</div>
+            <div class="rsize">(4m×5m) 20㎡</div>
+          </div>
+          <div class="room teal" style="flex:1;">
+            <div class="rnum">2202호</div>
+            <div class="rname">구내통신실습실</div>
+            <div class="rsize">114.24㎡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3층 -->
+  <div class="floor-plan" id="f3">
+    <div class="floor-label">3층</div>
+    <div class="building">
+      <div class="floor-grid">
+        <div class="left-rooms">
+          <div class="room blue" style="flex:1;">
+            <div class="rnum">2301호</div>
+            <div class="rname">강의실</div>
+            <div class="rsize">(19.96m × 9.52m) 190.02㎡</div>
+          </div>
+        </div>
+        <div class="center-fixed">
+          <div class="elevator-box">
+            <div class="elevator-icon"><div class="e-door"></div><div class="e-door"></div></div>
+            <div class="elabel">승강기</div>
+          </div>
+          <div class="lobby-box">로비</div>
+        </div>
+        <div class="right-rooms">
+          <div class="room amber hdivider" style="flex:0 0 auto; min-height:48px;">
+            <div class="rname">화장실</div>
+            <div class="rsize">(4m×5m) 20㎡</div>
+          </div>
+          <div class="room teal" style="flex:1;">
+            <div class="rnum">2302호</div>
+            <div class="rname">강의실</div>
+            <div class="rsize">(12m × 9.52m) 112.08㎡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4층 -->
+  <div class="floor-plan" id="f4">
+    <div class="floor-label">4층</div>
+    <div class="building">
+      <div class="floor-grid">
+        <div class="left-rooms">
+          <div class="room purple" style="flex:1;">
+            <div class="rnum">2401호</div>
+            <div class="rname">사이버보안실습실</div>
+            <div class="rsize">(19.96m × 9.52m) 190.02㎡</div>
+          </div>
+        </div>
+        <div class="center-fixed">
+          <div class="elevator-box">
+            <div class="elevator-icon"><div class="e-door"></div><div class="e-door"></div></div>
+            <div class="elabel">승강기</div>
+          </div>
+          <div class="lobby-box">로비</div>
+        </div>
+        <div class="right-rooms">
+          <div class="room amber hdivider" style="flex:0 0 auto; min-height:48px;">
+            <div class="rname">화장실</div>
+            <div class="rsize">(4m×5m) 20㎡</div>
+          </div>
+          <div class="room coral" style="flex:1;">
+            <div class="rnum">2403호</div>
+            <div class="rname">사물인터넷실습실</div>
+            <div class="rsize">131.28㎡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5층 -->
+  <div class="floor-plan" id="f5">
+    <div class="floor-label">5층</div>
+    <div class="building">
+      <div class="floor-grid">
+        <div class="left-rooms">
+          <div class="room teal" style="flex:1;">
+            <div class="rnum">2501호</div>
+            <div class="rname">초고속정보통신망실습실</div>
+            <div class="rsize">(19.96m × 9.52m) 190.02㎡</div>
+          </div>
+        </div>
+        <div class="center-fixed">
+          <div class="elevator-box">
+            <div class="elevator-icon"><div class="e-door"></div><div class="e-door"></div></div>
+            <div class="elabel">승강기</div>
+          </div>
+          <div class="lobby-box">로비</div>
+        </div>
+        <div class="right-rooms">
+          <div class="room amber hdivider" style="flex:0 0 auto; min-height:48px;">
+            <div class="rname">화장실</div>
+            <div class="rsize">(4m×5m) 20㎡</div>
+          </div>
+          <div class="room pink" style="flex:1;">
+            <div class="rnum">2503호</div>
+            <div class="rname">멀티미디어통신스튜디오실습실</div>
+            <div class="rsize">131.76㎡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6층 -->
+  <div class="floor-plan" id="f6">
+    <div class="floor-label">6층 (옥상층)</div>
+    <div class="building">
+      <div class="floor-grid">
+        <div class="left-rooms">
+          <div class="room gray" style="flex:1; align-items:center; justify-content:center;">
+            <div class="rname" style="color:var(--color-text-secondary);">옥상</div>
+          </div>
+        </div>
+        <div class="center-fixed">
+          <div class="elevator-box">
+            <div class="elevator-icon"><div class="e-door"></div><div class="e-door"></div></div>
+            <div class="elabel">승강기</div>
+          </div>
+          <div class="lobby-box">로비</div>
+        </div>
+        <div class="right-rooms">
+          <div class="room teal hdivider" style="flex:1;">
+            <div class="rname">체력단련실</div>
+            <div class="rsize">94.78㎡<br>(10m×6.6m) + (6.4m×4.7m)</div>
+          </div>
+          <div class="room gray" style="flex:1; align-items:center; justify-content:center;">
+            <div class="rname" style="color:var(--color-text-secondary);">옥상</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:#EEEDFE;border:0.5px solid #CECBF6;"></div>승강기</div>
+    <div class="leg"><div class="leg-dot" style="background:#E6F1FB;border:0.5px solid #B5D4F4;"></div>강의실/네트워크</div>
+    <div class="leg"><div class="leg-dot" style="background:#E1F5EE;border:0.5px solid #9FE1CB;"></div>통신실습실</div>
+    <div class="leg"><div class="leg-dot" style="background:#EEEDFE;border:0.5px solid #CECBF6;"></div>보안실습실</div>
+    <div class="leg"><div class="leg-dot" style="background:#FAECE7;border:0.5px solid #F5C4B3;"></div>IoT/기타</div>
+    <div class="leg"><div class="leg-dot" style="background:#FAEEDA;border:0.5px solid #FAC775;"></div>화장실</div>
+    <div class="leg"><div class="leg-dot" style="background:#F1EFE8;border:0.5px solid #D3D1C7;"></div>창고/옥상</div>
+  </div>
+</div>
+
+<script>
+function showFloor(id, el) {
+  document.querySelectorAll('.floor-plan').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+</script>

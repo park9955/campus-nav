@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대학본부 건물배치도</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --font-sans: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #5F5E5A;
+  --color-border-primary: #888780;
+  --color-border-secondary: #B4B2A9;
+  --color-border-tertiary: #D3D1C7;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #F7F6F3;
+  --radius-md: 6px;
+}
+body { font-family: var(--font-sans); background: #f4f3ef; min-height: 100vh; padding: 1.5rem; }
+.viewer { max-width: 960px; margin: 0 auto; background: var(--color-bg-primary); border-radius: 12px; padding: 1.5rem; border: 0.5px solid var(--color-border-tertiary); }
+.header { margin-bottom: 1.4rem; }
+.header h1 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.header p { font-size: 12px; color: var(--color-text-secondary); margin-top: 3px; }
+.floor-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.2rem; }
+.tab-btn { padding: 5px 14px; font-size: 13px; font-weight: 500; border: 0.5px solid var(--color-border-secondary); border-radius: var(--radius-md); background: var(--color-bg-primary); color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.tab-btn.active { background: #185FA5; border-color: #185FA5; color: #fff; }
+.tab-btn:hover:not(.active) { background: var(--color-bg-secondary); }
+.floor-panel { display: none; }
+.floor-panel.active { display: block; }
+.floor-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; letter-spacing: 0.04em; }
+.plan-wrapper { overflow-x: auto; }
+.pg { display: grid; border: 1px solid var(--color-border-primary); background: var(--color-bg-primary); }
+.r { border: 0.5px solid var(--color-border-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 4px; text-align: center; min-height: 80px; }
+.rn { font-size: 9.5px; font-weight: 500; color: #185FA5; line-height: 1.2; }
+.rs { font-size: 8px; color: var(--color-text-secondary); margin-top: 2px; }
+.rm { font-size: 9px; color: #1a1a1a; margin-top: 2px; font-weight: 500; line-height: 1.4; }
+.co { background: #F1EFE8; } .co .rm { color: #5F5E5A; }
+.st { background: #D3D1C7; } .st .rm { color: #444441; font-size: 8.5px; }
+.to { background: #E6F1FB; } .to .rm { color: #0C447C; }
+.of { background: #EEEDFE; } .of .rm { color: #3C3489; }
+.tl { background: #E1F5EE; } .tl .rm { color: #0F6E56; }
+.bl { background: #E6F1FB; } .bl .rm { color: #0C447C; }
+.gn { background: #EAF3DE; } .gn .rm { color: #3B6D11; }
+.sg { background: #B4B2A9; } .sg .rm { color: #2C2C2A; }
+.am { background: #FAEEDA; } .am .rm { color: #633806; }
+.gr { background: #F1EFE8; } .gr .rm { color: #5F5E5A; }
+.pu { background: #EEEDFE; } .pu .rm { color: #3C3489; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 0.5px solid var(--color-border-tertiary); }
+.li { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+.ld { width: 12px; height: 12px; border: 0.5px solid var(--color-border-secondary); border-radius: 2px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="viewer">
+  <div class="header">
+    <h1>대학본부 건물배치도</h1>
+    <p>층을 선택하여 평면도를 확인하세요</p>
+  </div>
+
+  <div class="floor-tabs">
+    <button class="tab-btn active" onclick="sf(event,'fb')">지하</button>
+    <button class="tab-btn" onclick="sf(event,'f1')">1층</button>
+    <button class="tab-btn" onclick="sf(event,'f2')">2층</button>
+    <button class="tab-btn" onclick="sf(event,'f3')">3층</button>
+    <button class="tab-btn" onclick="sf(event,'f4')">4층</button>
+    <button class="tab-btn" onclick="sf(event,'f5')">5층</button>
+  </div>
+
+  <!-- 지하 -->
+  <div class="floor-panel active" id="fb">
+    <div class="floor-label">• 지하층</div>
+    <div class="plan-wrapper"><div style="min-width:560px;">
+      <div class="pg" style="grid-template-columns:1fr 130px 130px 60px; grid-template-rows:80px 80px;">
+        <div class="r gr" style="grid-column:1;grid-row:1/3"><div class="rm">체력단련실</div><div class="rs">9.5×9.2m / 87.4m²</div></div>
+        <div class="r sg" style="grid-column:2;grid-row:1"><div class="rm">문서창고</div><div class="rs">7.2×3.3m / 23.76m²</div></div>
+        <div class="r am" style="grid-column:3;grid-row:1"><div class="rm">창고(보일러실)</div><div class="rs">55.08m²</div></div>
+        <div class="r st" style="grid-column:4;grid-row:1/3"><div class="rm">계단</div></div>
+        <div class="r tl" style="grid-column:2;grid-row:2"><div class="rm">휴게실</div><div class="rs">2.5×7.6m / 19m²</div></div>
+        <div class="r to" style="grid-column:3;grid-row:2"><div class="rm">샤워실</div><div class="rs">3.6×2.8m / 10.08m²</div></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 1층 -->
+  <div class="floor-panel" id="f1">
+    <div class="floor-label">• 1층</div>
+    <div class="plan-wrapper"><div style="min-width:500px;">
+      <div class="pg" style="grid-template-columns:1fr 130px 60px; grid-template-rows:80px 80px;">
+        <div class="r bl" style="grid-column:1;grid-row:1"><div class="rm">일학습공동훈련센터</div></div>
+        <div class="r to" style="grid-column:2;grid-row:1"><div class="rm">화장실</div><div class="rs">5.3×3.7m / 19.61m²</div></div>
+        <div class="r st" style="grid-column:3;grid-row:1/3"><div class="rm">계단</div></div>
+        <div class="r tl" style="grid-column:1;grid-row:2"><div class="rm">교학처 (학사운영팀, 입학취업팀)</div></div>
+        <div class="r co" style="grid-column:2;grid-row:2"><div class="rm">현관</div></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 2층 -->
+  <div class="floor-panel" id="f2">
+    <div class="floor-label">• 2층</div>
+    <div class="plan-wrapper"><div style="min-width:500px;">
+      <div class="pg" style="grid-template-columns:1fr 1fr 130px 60px; grid-template-rows:80px 80px;">
+        <div class="r of" style="grid-column:1;grid-row:1"><div class="rm">경영지원실장실</div></div>
+        <div class="r bl" style="grid-column:2;grid-row:1"><div class="rm">교학처장실</div></div>
+        <div class="r to" style="grid-column:3;grid-row:1"><div class="rm">화장실</div><div class="rs">11.55m²</div></div>
+        <div class="r st" style="grid-column:4;grid-row:1/3"><div class="rm">계단</div></div>
+        <div class="r tl" style="grid-column:1;grid-row:2"><div class="rm">학장실</div></div>
+        <div class="r sg" style="grid-column:2;grid-row:2"><div class="rm">창고 / 부속실 / 탕비실</div></div>
+        <div class="r co" style="grid-column:3;grid-row:2"></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 3층 -->
+  <div class="floor-panel" id="f3">
+    <div class="floor-label">• 3층</div>
+    <div class="plan-wrapper"><div style="min-width:560px;">
+      <div class="pg" style="grid-template-columns:1fr 1.2fr 120px 60px; grid-template-rows:80px 80px;">
+        <div class="r bl" style="grid-column:1;grid-row:1"><div class="rm">학교법인 이사장실</div></div>
+        <div class="r tl" style="grid-column:2;grid-row:1"><div class="rm">학교법인 사무처</div></div>
+        <div class="r to" style="grid-column:3;grid-row:1"><div class="rm">화장실</div><div class="rs">5.3×3.8m / 20.14m²</div></div>
+        <div class="r st" style="grid-column:4;grid-row:1/3"><div class="rm">계단</div></div>
+        <div class="r of" style="grid-column:1;grid-row:2"><div class="rm">경영지원실 회의실</div></div>
+        <div class="r gn" style="grid-column:2;grid-row:2"><div class="rm">경영지원실 (경영기획팀, 운영지원팀)</div></div>
+        <div class="r co" style="grid-column:3;grid-row:2"><div class="rm">복도</div></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 4층 -->
+  <div class="floor-panel" id="f4">
+    <div class="floor-label">• 4층 — 교수실 (클라우드인터넷학과, IT융합학과)</div>
+    <div class="plan-wrapper"><div style="min-width:580px;">
+      <div class="pg" style="grid-template-columns:110px 110px 110px 110px 120px 60px; grid-template-rows:80px 80px;">
+        <div class="r of" style="grid-column:1;grid-row:1"><div class="rn">406</div><div class="rm">교수연구실</div><div class="rs">3.6×6.2m / 22.32m² (장선권)</div></div>
+        <div class="r bl" style="grid-column:2;grid-row:1"><div class="rn">407</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (설동화)</div></div>
+        <div class="r bl" style="grid-column:3;grid-row:1"><div class="rn">408</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (장진현)</div></div>
+        <div class="r bl" style="grid-column:4;grid-row:1"><div class="rn">409</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (신내훈)</div></div>
+        <div class="r to" style="grid-column:5;grid-row:1"><div class="rm">화장실</div><div class="rs">11.55m²</div></div>
+        <div class="r st" style="grid-column:6;grid-row:1/3"><div class="rm">계단</div></div>
+        <div class="r of" style="grid-column:1;grid-row:2"><div class="rn">405</div><div class="rm">교수연구실</div><div class="rs">3.6×6.2m / 22.32m² (강동진)</div></div>
+        <div class="r tl" style="grid-column:2;grid-row:2"><div class="rn">403</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (김동옥)</div></div>
+        <div class="r tl" style="grid-column:3;grid-row:2"><div class="rn">402</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (구 이형규)</div></div>
+        <div class="r tl" style="grid-column:4;grid-row:2"><div class="rn">401</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (김성연)</div></div>
+        <div class="r sg" style="grid-column:5;grid-row:2"><div class="rm">조교실</div></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 5층 -->
+  <div class="floor-panel" id="f5">
+    <div class="floor-label">• 5층 — 교수실 (정보통신학과, AI소프트웨어학과, 정보보안학과)</div>
+    <div class="plan-wrapper"><div style="min-width:580px;">
+      <div class="pg" style="grid-template-columns:110px 110px 110px 110px 120px 60px; grid-template-rows:80px 80px;">
+        <div class="r of" style="grid-column:1;grid-row:1"><div class="rn">506</div><div class="rm">교수연구실</div><div class="rs">3.6×6.2m / 22.32m² (김영철)</div></div>
+        <div class="r bl" style="grid-column:2;grid-row:1"><div class="rn">507</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (장지연)</div></div>
+        <div class="r bl" style="grid-column:3;grid-row:1"><div class="rn">508</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (조경철)</div></div>
+        <div class="r bl" style="grid-column:4;grid-row:1"><div class="rn">509</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (오지현)</div></div>
+        <div class="r to" style="grid-column:5;grid-row:1"><div class="rm">화장실</div><div class="rs">11.55m²</div></div>
+        <div class="r st" style="grid-column:6;grid-row:1/3"><div class="rm">계단</div></div>
+        <div class="r of" style="grid-column:1;grid-row:2"><div class="rn">505</div><div class="rm">교수연구실</div><div class="rs">3.6×6.2m / 22.32m² (한기관)</div></div>
+        <div class="r tl" style="grid-column:2;grid-row:2"><div class="rn">503</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (임정희)</div></div>
+        <div class="r tl" style="grid-column:3;grid-row:2"><div class="rn">502</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (김명생)</div></div>
+        <div class="r tl" style="grid-column:4;grid-row:2"><div class="rn">501</div><div class="rm">교수연구실</div><div class="rs">4.5×5m / 22.5m² (송영아)</div></div>
+        <div class="r sg" style="grid-column:5;grid-row:2"><div class="rm">조교실</div></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:#E6F1FB"></div>강의·행정</div>
+    <div class="li"><div class="ld" style="background:#E1F5EE"></div>지원·처장실</div>
+    <div class="li"><div class="ld" style="background:#EEEDFE"></div>교수연구실(상단)</div>
+    <div class="li"><div class="ld" style="background:#EAF3DE"></div>경영지원</div>
+    <div class="li"><div class="ld" style="background:#FAEEDA"></div>화장실·창고류</div>
+    <div class="li"><div class="ld" style="background:#D3D1C7"></div>계단</div>
+    <div class="li"><div class="ld" style="background:#F1EFE8"></div>복도·창고</div>
+  </div>
+</div>
+<script>
+function sf(e, id) {
+  document.querySelectorAll('.floor-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  e.target.classList.add('active');
+}
+</script>
+</body>
+</html>

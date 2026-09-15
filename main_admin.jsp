@@ -1,572 +1,630 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" session="true" import="java.sql.*" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" session="true" import="java.sql.*,java.util.*" %>
 <%
-    String loginUser=(String)session.getAttribute("loginUser"),loginName=(String)session.getAttribute("loginName");
-    if(loginUser==null){response.sendRedirect("/CampusNav/campuslogin.jsp");return;}
-    int tA=0,tT=0,tD=0,tR=0,tGong=0,tJip=0,tSw=0;
-    try{Class.forName("com.mysql.cj.jdbc.Driver");
-    Connection conn=DriverManager.getConnection("jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true","root","1234");
-    ResultSet rs;
-    rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM assets");if(rs.next())tA=rs.getInt(1);
-    rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM assets WHERE asset_class='공기구비품'");if(rs.next())tGong=rs.getInt(1);
-    rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM assets WHERE asset_class='집기비품'");if(rs.next())tJip=rs.getInt(1);
-    rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM assets WHERE asset_class='무형고정자산'");if(rs.next())tSw=rs.getInt(1);
-    rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM asset_transfer");if(rs.next())tT=rs.getInt(1);
-    rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM asset_disposal");if(rs.next())tD=rs.getInt(1);
-    rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM reservations");if(rs.next())tR=rs.getInt(1);
-    conn.close();}catch(Exception e){}
+    String loginUser=(String)session.getAttribute("loginUser");
+    String loginName=(String)session.getAttribute("loginName");
+    if(loginUser==null){response.sendRedirect("/CAN/campuslogin.jsp");return;}
+    if(!"admin".equals(session.getAttribute("loginRole"))){response.sendRedirect("/CAN/campuslogin.jsp");return;}
+
+    final String DBURL="jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
+
+    String okMsg="",errMsg="";
+    // ── POST 처리 ──
+    if("POST".equals(request.getMethod())){
+        request.setCharacterEncoding("UTF-8");
+        String act=request.getParameter("act");
+        // 예약 연장
+        if("extendReserve".equals(act)){
+            String rid=request.getParameter("reserveId");
+            String extendHours=request.getParameter("extendHours");
+            try{
+                int hours=Integer.parseInt(extendHours!=null?extendHours:"1");
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                Connection c=DriverManager.getConnection(DBURL,"root","1234");
+                PreparedStatement ps=c.prepareStatement("UPDATE reservations SET end_time=DATE_ADD(end_time,INTERVAL ? HOUR) WHERE reserve_id=?");
+                ps.setInt(1,hours);ps.setString(2,rid);int n=ps.executeUpdate();ps.close();c.close();
+                okMsg=n>0?"예약 #"+rid+" 이(가) "+hours+"시간 연장되었습니다":"해당 예약을 찾을 수 없습니다.";
+            }catch(Exception e){errMsg="연장 오류: "+e.getMessage();}
+        }
+        // 예약 취소
+        else if("cancelReserve".equals(act)){
+            String rid=request.getParameter("reserveId");
+            try{
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                Connection c=DriverManager.getConnection(DBURL,"root","1234");
+                PreparedStatement ps=c.prepareStatement("UPDATE reservations SET status='취소' WHERE reserve_id=?");
+                ps.setString(1,rid);int n=ps.executeUpdate();ps.close();c.close();
+                okMsg=n>0?"예약 #"+rid+" 취소 완료":"해당 예약을 찾을 수 없습니다.";
+            }catch(Exception e){errMsg="취소 오류: "+e.getMessage();}
+        }
+        // 이관내역 등록
+        else if("addTransfer".equals(act)){
+            String assetNo=request.getParameter("t_asset_no");
+            String tDate=request.getParameter("t_date");
+            String fDept=request.getParameter("t_from_dept");
+            String fLoc=request.getParameter("t_from_loc");
+            String tDept=request.getParameter("t_to_dept");
+            String tLoc=request.getParameter("t_to_loc");
+            String rmk=request.getParameter("t_remark");
+            if(assetNo==null||assetNo.trim().isEmpty()||tDate==null||tDate.trim().isEmpty()){
+                errMsg="자산번호와 이관일자는 필수입니다.";
+            } else {
+                try{
+                    Class.forName("com.mysql.cj.jdbc.Driver");
+                    Connection c=DriverManager.getConnection(DBURL,"root","1234");
+                    // 자산 존재 확인
+                    PreparedStatement ck=c.prepareStatement("SELECT item_name FROM assets WHERE asset_no=?");
+                    ck.setString(1,assetNo.trim());ResultSet rck=ck.executeQuery();
+                    if(!rck.next()){errMsg="자산번호 ["+assetNo+"] 이(가) 없습니다.";}
+                    else{
+                        String iname=rck.getString(1);rck.close();ck.close();
+                        PreparedStatement ps=c.prepareStatement(
+                            "INSERT INTO asset_transfer(asset_no,item_name,transfer_date,before_dept,before_detail,after_dept,after_detail,remark) VALUES(?,?,?,?,?,?,?,?)");
+                        ps.setString(1,assetNo.trim());ps.setString(2,iname);
+                        ps.setString(3,tDate.trim());ps.setString(4,fDept!=null?fDept:"");
+                        ps.setString(5,fLoc!=null?fLoc:"");ps.setString(6,tDept!=null?tDept:"");
+                        ps.setString(7,tLoc!=null?tLoc:"");ps.setString(8,rmk!=null?rmk:"");
+                        ps.executeUpdate();ps.close();
+                        okMsg="이관내역 등록 완료! ["+assetNo+"] "+iname;
+                    }
+                    c.close();
+                }catch(Exception e){errMsg="이관 등록 오류: "+e.getMessage();}
+            }
+        }
+    }
+
+    // ── 통계 조회 ──
+    int tA=0,tT=0,tD=0,tR=0;
+    List<Map<String,String>> allReserves=new ArrayList<>();
+    try{
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection conn=DriverManager.getConnection(DBURL,"root","1234");
+        // 시간이 지난 예약을 자동으로 "사용완료"로 변경
+        String updateSql="UPDATE reservations SET status='사용완료' WHERE status='예약완료' AND CONCAT(reserve_date,' ',end_time) < NOW()";
+        conn.createStatement().executeUpdate(updateSql);
+        ResultSet rs;
+        rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM assets");if(rs.next())tA=rs.getInt(1);rs.close();
+        rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM asset_transfer");if(rs.next())tT=rs.getInt(1);rs.close();
+        rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM asset_disposal");if(rs.next())tD=rs.getInt(1);rs.close();
+        rs=conn.createStatement().executeQuery("SELECT COUNT(*) FROM reservations");if(rs.next())tR=rs.getInt(1);rs.close();
+        // 전체 예약 조회
+        rs=conn.createStatement().executeQuery(
+            "SELECT r.reserve_id,r.user_id,IFNULL(u.user_name,r.user_id) AS uname,"+
+            "IFNULL(a.item_name,'강의실') AS item_name,r.reserve_date,r.start_time,r.end_time,r.status "+
+            "FROM reservations r LEFT JOIN assets a ON r.asset_no=a.asset_no "+
+            "LEFT JOIN users u ON r.user_id=u.user_id "+
+            "ORDER BY r.reserve_date DESC,r.start_time DESC LIMIT 30");
+        while(rs.next()){
+            Map<String,String> m=new LinkedHashMap<>();
+            m.put("id",rs.getString("reserve_id")!=null?rs.getString("reserve_id"):"");
+            m.put("uid",rs.getString("user_id")!=null?rs.getString("user_id"):"");
+            m.put("uname",rs.getString("uname")!=null?rs.getString("uname"):"");
+            m.put("name",rs.getString("item_name")!=null?rs.getString("item_name"):"");
+            m.put("date",rs.getString("reserve_date")!=null?rs.getString("reserve_date"):"");
+            m.put("start",rs.getString("start_time")!=null?rs.getString("start_time"):"");
+            m.put("end",rs.getString("end_time")!=null?rs.getString("end_time"):"");
+            m.put("status",rs.getString("status")!=null?rs.getString("status"):"");
+            allReserves.add(m);
+        }
+        rs.close();conn.close();
+    }catch(Exception e){errMsg+="|조회오류:"+e.getMessage();}
 %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ICT CampusNav — 운영관리자</title>
+<title>ICT CAN — 관리자</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Pretendard:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+
 <style>
-
-/* ═══ TOKENS (ppd4) ═══ */
 :root {
-  --white:#ffffff; --bg:#f7f8fa; --bg2:#f0f2f5;
-  --line:#e4e7ed; --line2:#d0d5df;
-  --txt:#111827; --txt2:#4b5563; --txt3:#9ca3af;
-  --blue:#1a56db; --blue-lt:#eff4ff; --blue-md:#c7d7fd;
-  --teal:#0d9488; --teal-lt:#f0fdfa; --teal-md:#99f6e4;
-  --amber:#d97706; --amber-lt:#fffbeb;
-  --red:#dc2626; --red-lt:#fef2f2;
-  --green:#16a34a; --green-lt:#f0fdf4;
-  --purple:#7c3aed; --purple-lt:#f5f3ff;
-  --mono:'DM Mono',monospace;
-  --sans:'DM Sans','Noto Sans KR',sans-serif;
-  --r:12px; --r2:20px;
-  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
-  --shadow2:0 2px 8px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.06);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15px;line-height:1.6;}
+  --bg-app: #f0f4f9;
+  --surface: #ffffff;
 
-/* ═══ TOPNAV ═══ */
-.topnav{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:28px;}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--txt);letter-spacing:-.02em;text-decoration:none;}
-.logo-dot{width:30px;height:30px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.logo-dot img{width:100%;height:100%;object-fit:contain;}
-.logo em{color:var(--blue);font-style:normal;}
-.nav-right{display:flex;gap:8px;align-items:center;}
-.chip{font-family:var(--mono);font-size:12px;padding:6px 13px;border-radius:999px;background:var(--white);border:1px solid var(--line);color:var(--txt2);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
-.chip:hover{border-color:var(--blue);color:var(--blue);}
-.chip-blue{background:var(--blue);color:white;border-color:var(--blue);}
-.chip-blue:hover{background:#1647c0;color:white;}
-.role-chip{font-family:var(--mono);font-size:12px;padding:5px 13px;border-radius:6px;background:var(--blue-lt);border:1px solid var(--blue-md);color:var(--blue);}
+  --txt-main: #0f172a;
+  --txt-sub: #334155;
+  --txt-muted: #64748b;
 
-/* ═══ SHELL ═══ */
-.shell{max-width:1380px;margin:0 auto;padding:0 24px 72px;}
+  --sky-primary: #0284c7;
+  --sky-hover: #0369a1;
+  --sky-light: #e0f2fe;
+  --sky-bg: #f0f9ff;
 
-/* ═══ HERO ═══ */
-.hero{background:linear-gradient(135deg,#0f172a 0%,#0d6147 50%,#16a34a 100%);border:none;border-radius:var(--r2);padding:40px 44px;margin-bottom:24px;box-shadow:0 8px 32px rgba(15,23,42,.25);display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center;position:relative;overflow:hidden;}
-.hero::after{content:'';position:absolute;right:0;top:0;bottom:0;width:280px;background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,rgba(22,163,74,.15) 100%);clip-path:polygon(15% 0%,100% 0%,100% 100%,0% 100%);z-index:0;pointer-events:none;}
-.hero-content{position:relative;z-index:1;}
-.hero-eyebrow{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.7);letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;}
-.hero-title{font-size:28px;font-weight:800;line-height:1.25;letter-spacing:-.03em;margin-bottom:10px;color:#ffffff;}
-.hero-title span{color:#4ade80;}
-.hero-desc{color:rgba(255,255,255,.85);font-size:15px;line-height:1.85;max-width:560px;margin-bottom:18px;}
-.tag-row{display:flex;flex-wrap:wrap;gap:6px;}
-.tag{font-family:var(--mono);font-size:12px;padding:4px 11px;border-radius:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.9);}
-.tag b{color:var(--blue);}
-.hero-side{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:140px;}
-.hero-illo{font-size:56px;line-height:1;}
+  --emerald-main: #16a34a;
+  --amber-main: #d97706;
 
-/* 검색바 */
-.search-hero{display:flex;gap:8px;max-width:520px;margin-top:16px;}
-.search-hero input{flex:1;border:1.5px solid var(--line2);border-radius:var(--r);padding:10px 16px;font-size:15px;outline:none;background:var(--white);color:var(--txt);font-family:var(--sans);}
-.search-hero input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-lt);}
-.btn-search-hero{background:var(--blue);color:white;border:none;border-radius:var(--r);padding:10px 20px;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s;}
-.btn-search-hero:hover{background:#1647c0;}
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
 
-/* ═══ STAT ROW ═══ */
-.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
-.stat-card{background:var(--white);border:1px solid var(--line);border-radius:var(--r2);padding:22px 24px;box-shadow:var(--shadow);display:flex;align-items:flex-start;gap:16px;transition:box-shadow .2s,transform .2s;cursor:pointer;}
-.stat-card:hover{box-shadow:var(--shadow2);transform:translateY(-2px);}
-.stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.si-blue{background:var(--blue-lt);} .si-teal{background:var(--teal-lt);} .si-purple{background:var(--purple-lt);} .si-amber{background:var(--amber-lt);}
-.stat-label{font-size:12px;color:var(--txt3);font-family:var(--mono);margin-bottom:4px;}
-.stat-val{font-size:30px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:4px;}
-.sv-blue{color:var(--blue);} .sv-teal{color:var(--teal);} .sv-purple{color:var(--purple);} .sv-amber{color:var(--amber);}
-.stat-sub{font-size:12px;color:var(--txt3);line-height:1.5;}
+  --shadow-air: 0 20px 40px -15px rgba(2, 132, 199, 0.15);
+  --shadow-soft: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
 
-/* ═══ MAIN GRID ═══ */
-.main-grid{display:grid;grid-template-columns:1fr 360px;gap:20px;}
-
-/* ═══ CARD ═══ */
-.card{background:var(--white);border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px;}
-.card-head{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;}
-.ch-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-.ch-title{font-size:15px;font-weight:700;color:var(--txt);}
-.ch-sub{font-size:12px;color:var(--txt3);margin-top:1px;}
-.card-body{padding:20px 24px;}
-.card-head-extra{margin-left:auto;}
-
-/* ═══ SPACE LIST (공간 추천) ═══ */
-.space-item{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);}
-.space-item:last-child{border-bottom:none;}
-.space-rank{font-family:var(--mono);font-size:12px;color:var(--txt3);min-width:22px;}
-.space-bar{width:3px;height:38px;border-radius:2px;flex-shrink:0;}
-.sb-blue{background:var(--blue);} .sb-teal{background:var(--teal);} .sb-purple{background:var(--purple);}
-.space-info{flex:1;}
-.space-name{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:3px;}
-.space-meta{font-size:13px;color:var(--txt2);}
-.space-tags{margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;}
-.stag{font-size:11px;font-family:var(--mono);font-weight:500;padding:3px 9px;border-radius:5px;}
-.stag-blue{background:var(--blue-lt);color:var(--blue);} .stag-green{background:var(--green-lt);color:var(--green);}
-.stag-purple{background:var(--purple-lt);color:var(--purple);} .stag-teal{background:var(--teal-lt);color:var(--teal);}
-.space-action{flex-shrink:0;}
-.btn-prim{font-family:var(--mono);font-size:12px;font-weight:500;padding:8px 16px;background:var(--blue);color:white;border:none;border-radius:var(--r);cursor:pointer;transition:background .15s;white-space:nowrap;text-decoration:none;display:inline-block;}
-.btn-prim:hover{background:#1647c0;color:white;}
-.btn-ghost{font-family:var(--mono);font-size:12px;font-weight:500;padding:8px 16px;background:var(--white);color:var(--txt2);border:1px solid var(--line);border-radius:var(--r);cursor:pointer;transition:all .15s;white-space:nowrap;text-decoration:none;display:inline-block;}
-.btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
-
-/* ═══ CATEGORY GRID ═══ */
-.cat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
-.cat-item{border:1px solid var(--line);border-radius:var(--r2);padding:18px 8px;text-align:center;text-decoration:none;color:var(--txt);background:var(--white);transition:all .2s;cursor:pointer;}
-.cat-item:hover{border-color:var(--blue);box-shadow:var(--shadow2);transform:translateY(-2px);color:var(--blue);}
-.cat-item i{display:block;font-size:22px;margin-bottom:8px;}
-.cat-item span{font-size:13px;font-weight:600;display:block;}
-
-/* ═══ NAV MAP (우측 패널) ═══ */
-.map-frame{background:linear-gradient(135deg,var(--teal-lt),var(--blue-lt));border:1.5px dashed var(--teal-md);border-radius:var(--r2);padding:28px 20px;text-align:center;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;}
-.map-icon{font-size:44px;line-height:1;}
-.map-label{font-size:15px;font-weight:700;color:var(--txt);}
-.map-note{font-size:13px;color:var(--txt3);line-height:1.7;max-width:260px;}
-.map-search{width:100%;border:1.5px solid var(--line2);border-radius:var(--r);padding:10px 14px;font-size:14px;outline:none;background:var(--white);color:var(--txt);font-family:var(--sans);margin-bottom:8px;}
-.map-search:focus{border-color:var(--blue);}
-.map-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.btn-nav-prim{background:var(--teal);color:white;border:none;border-radius:var(--r);padding:11px 10px;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;text-align:center;text-decoration:none;display:block;}
-.btn-nav-prim:hover{background:#0b7b70;color:white;}
-.btn-nav-ghost{background:transparent;color:var(--txt2);border:1px solid var(--line2);border-radius:var(--r);padding:10px 10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center;text-decoration:none;display:block;}
-.btn-nav-ghost:hover{border-color:var(--teal);color:var(--teal);}
-
-/* ═══ ADMIN LIST ═══ */
-.admin-list{list-style:none;padding:0;margin:0;}
-.admin-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
-.admin-item:last-child{border-bottom:none;}
-.admin-label{font-size:14px;color:var(--txt2);}
-.admin-val{font-size:14px;font-weight:700;color:var(--txt);font-family:var(--mono);}
-
-/* ═══ RESPONSIVE ═══ */
-@media(max-width:1100px){.main-grid{grid-template-columns:1fr;} .cat-grid{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:768px){
-  .shell{padding:0 16px 48px;} .topnav{padding:12px 0;}
-  .hero{grid-template-columns:1fr;padding:24px 20px;} .hero::after{display:none;} .hero-side{display:none;}
-  .stat-row{grid-template-columns:repeat(2,1fr);}
-  .search-hero{flex-direction:column;} .btn-search-hero{width:100%;}
-  .cat-grid{grid-template-columns:repeat(3,1fr);}
+  --font-main: 'Pretendard', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --border-color: rgba(226, 232, 240, 0.8);
 }
 
-
-/* ══ 테이블 선명도 강화 ══ */
-.tbl { border: 1px solid var(--line2); border-radius: var(--r2); overflow: hidden; }
-.tbl thead th {
-    font-family: var(--mono);
-    font-size: 13px !important;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    color: var(--txt) !important;
-    font-weight: 700 !important;
-    padding: 14px 16px !important;
-    border-bottom: 2px solid var(--blue-md) !important;
-    background: var(--blue-lt) !important;
-}
-.tbl tbody td {
-    padding: 14px 16px !important;
-    border-bottom: 1px solid var(--line) !important;
-    font-size: 15px !important;
-    vertical-align: middle;
-    color: var(--txt) !important;
-}
-.tbl tbody tr:hover td { background: var(--blue-lt) !important; }
-.tbl tbody tr { cursor: pointer; transition: background .12s; }
-
-/* ══ 검색바 하이라이트 ══ */
-.search-bar {
-    background: var(--white);
-    border: 2px solid var(--blue-md);
-    border-radius: var(--r2);
-    padding: 10px 12px;
-    box-shadow: 0 0 0 4px var(--blue-lt), var(--shadow);
-    gap: 10px !important;
-}
-.search-bar input {
-    border: none !important;
-    background: transparent !important;
-    font-size: 15px !important;
-    font-weight: 500;
-    color: var(--txt) !important;
-    outline: none !important;
-    box-shadow: none !important;
-}
-.search-bar input::placeholder { color: var(--txt3); font-size: 14px; }
-.search-bar input:focus { box-shadow: none !important; border: none !important; }
-.search-bar select {
-    border: 1.5px solid var(--line2) !important;
-    border-radius: var(--r) !important;
-    padding: 9px 12px !important;
-    font-size: 14px !important;
-    background: var(--white) !important;
-    color: var(--txt) !important;
-    font-weight: 600;
-}
-.search-bar .btn-prim {
-    padding: 10px 22px !important;
-    font-size: 15px !important;
-    font-weight: 700 !important;
-    border-radius: var(--r) !important;
-    white-space: nowrap;
+[data-theme="dark"] {
+  --bg-app: #0f172a;
+  --surface: #1e293b;
+  --txt-main: #f1f5f9;
+  --txt-sub: #e2e8f0;
+  --txt-muted: #cbd5e1;
+  --sky-primary: #38bdf8;
+  --sky-hover: #0ea5e9;
+  --sky-light: #0c4a6e;
+  --sky-bg: #1e3a5f;
+  --header-bg: rgba(30, 41, 59, 0.95);
+  --border-color: rgba(71, 85, 105, 0.6);
 }
 
-/* ══ 배지 선명도 ══ */
-.badge-ok   { font-size: 13px !important; padding: 4px 11px !important; font-weight: 700 !important; }
-.badge-busy { font-size: 13px !important; padding: 4px 11px !important; font-weight: 700 !important; }
-.badge-warn { font-size: 13px !important; padding: 4px 11px !important; font-weight: 700 !important; }
-.badge-blue, .badge-purple, .badge-teal { font-size: 13px !important; padding: 4px 11px !important; font-weight: 700 !important; }
-
-/* ══ 페이저 선명도 ══ */
-.pager .pb {
-    font-size: 14px !important;
-    padding: 8px 14px !important;
-    font-weight: 600 !important;
-    border: 1.5px solid var(--line2) !important;
-}
-.pager .pb.on {
-    background: var(--blue) !important;
-    color: white !important;
-    border-color: var(--blue) !important;
-    font-weight: 700 !important;
+body {
+  font-family: var(--font-main);
+  background: linear-gradient(180deg, #dbeafe 0%, #e0f2fe 18%, #f0f4f9 45%, #f0f4f9 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--txt-main);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  transition: background 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ══ 카드 헤더 선명도 ══ */
-.ch-title { font-size: 16px !important; font-weight: 800 !important; }
-.ch-sub   { font-size: 13px !important; }
-
-/* ══ FOOTER ══ */
-.site-footer {
-    margin-top: 60px;
-    border-top: 1px solid var(--line);
-    padding: 28px 0 40px;
-}
-.footer-inner {
-    max-width: 1380px;
-    margin: 0 auto;
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-}
-.footer-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 800;
-    font-size: 15px;
-    color: var(--txt);
-    text-decoration: none;
-    letter-spacing: -.02em;
-}
-.footer-logo em { color: var(--blue); font-style: normal; }
-.footer-logo-dot {
-    width: 26px; height: 26px;
-    border-radius: 7px;
-    background: var(--blue);
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-}
-.footer-logo-dot img { width: 100%; height: 100%; object-fit: contain; }
-.footer-team {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--txt3);
-    line-height: 1.8;
-    text-align: center;
-}
-.footer-team strong { color: var(--blue); font-size: 13px; }
-.footer-copy {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--txt3);
-    text-align: right;
-    line-height: 1.8;
+[data-theme="dark"] body {
+  background: linear-gradient(180deg, #0f172a 0%, #1a2f3a 40%, #1a332f 100%);
 }
 
+a { text-decoration: none; color: inherit; }
 
-/* ══ 검색바 입력 포커스 하이라이트 (FOCUS GLOW) ══ */
-.search-bar:focus-within {
-    border-color: var(--blue) !important;
-    box-shadow: 0 0 0 4px rgba(26,86,219,.15), var(--shadow2) !important;
-}
-.search-bar input:focus::placeholder { color: var(--blue-md); }
-
-/* ══ 테이블 헤더 칼럼 구분선 ══ */
-.tbl thead th:not(:last-child) { border-right: 1px solid var(--blue-md); }
-.tbl tbody td:not(:last-child) { border-right: 1px solid var(--line); }
-.tbl thead th { white-space: nowrap; }
-
-/* ══ 테이블 행 번호/자산번호 선명도 ══ */
-.tbl tbody td:first-child {
-    font-family: var(--mono) !important;
-    font-size: 13px !important;
-    color: var(--txt3) !important;
-    font-weight: 600 !important;
+.app-header {
+  background: var(--header-bg);
+  backdrop-filter: blur(16px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s ease;
 }
 
-/* ══ 검색 결과 카드 border 강화 ══ */
-.card { border: 1.5px solid var(--line2) !important; }
-.card-head { border-bottom: 1.5px solid var(--line2) !important; }
-
-/* ══ HERO 검색바 하이라이트 ══ */
-.search-hero {
-    background: var(--white);
-    border: 2px solid var(--blue-md);
-    border-radius: var(--r2);
-    padding: 6px 6px 6px 16px;
-    box-shadow: 0 0 0 4px var(--blue-lt), var(--shadow);
-    max-width: 560px;
-    gap: 6px !important;
-}
-.search-hero input {
-    border: none !important;
-    background: transparent !important;
-    font-size: 15px !important;
-    font-weight: 500;
-    outline: none !important;
-    box-shadow: none !important;
-    padding: 6px 0 !important;
-}
-.search-hero:focus-within {
-    border-color: var(--blue) !important;
-    box-shadow: 0 0 0 5px rgba(26,86,219,.18), var(--shadow2) !important;
-}
-.search-hero .btn-search-hero {
-    border-radius: var(--r) !important;
-    padding: 10px 20px !important;
-    font-size: 15px !important;
-    font-weight: 700 !important;
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--txt-sub);
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
 }
 
-
-/* ══ Hero 다크그린 그라디언트 (교수님 요청) ══ */
-.hero {
-    background: linear-gradient(135deg, #0f172a 0%, #0d6147 50%, #16a34a 100%) !important;
-    border: none !important;
-    box-shadow: 0 8px 32px rgba(15,23,42,.25) !important;
-}
-.hero::after {
-    background: linear-gradient(135deg, rgba(255,255,255,.06) 0%, rgba(22,163,74,.15) 100%) !important;
-}
-.hero-eyebrow { color: rgba(255,255,255,.72) !important; }
-.hero-title   { color: #ffffff !important; }
-.hero-title em, .hero-title span { color: #4ade80 !important; }
-.hero-desc    { color: rgba(255,255,255,.85) !important; }
-.tag {
-    background: rgba(255,255,255,.15) !important;
-    border-color: rgba(255,255,255,.25) !important;
-    color: rgba(255,255,255,.9) !important;
-}
-.tag b { color: #4ade80 !important; }
-/* 검색 hero 안 input */
-.search-hero {
-    background: rgba(255,255,255,.12) !important;
-    border-color: rgba(255,255,255,.35) !important;
-    box-shadow: none !important;
-}
-.search-hero input {
-    color: #ffffff !important;
-    background: transparent !important;
-    border: none !important;
-}
-.search-hero input::placeholder { color: rgba(255,255,255,.55) !important; }
-.search-hero:focus-within {
-    background: rgba(255,255,255,.18) !important;
-    border-color: rgba(255,255,255,.6) !important;
+.theme-toggle:hover {
+  background: var(--sky-bg);
+  color: var(--sky-primary);
 }
 
+.brand-logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: var(--txt-main);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-badge {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+
+.nav-link-btn {
+  font-weight: 700;
+  font-size: 0.925rem;
+  color: var(--txt-sub);
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-link-btn:hover {
+  background: var(--sky-bg);
+  color: var(--sky-primary);
+}
+
+.user-tag-pill {
+  background: var(--surface);
+  border: 1px solid #cbd5e1;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--txt-main);
+}
+
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+.stat-card { background: var(--surface); border: 1px solid #f1f5f9; border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-soft); display: flex; align-items: flex-start; gap: 1.5rem; cursor: pointer; transition: all 0.25s; }
+.stat-card:hover { box-shadow: var(--shadow-air); transform: translateY(-2px); }
+.stat-icon { width: 3rem; height: 3rem; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+.si-blue { background: #f0f9ff; } .si-teal { background: #f0fdf4; } .si-purple { background: #f5f3ff; } .si-amber { background: #fffbeb; }
+.stat-label { font-size: 0.75rem; color: var(--txt-muted); font-weight: 600; margin-bottom: 0.25rem; }
+.stat-val { font-size: 1.875rem; font-weight: 800; line-height: 1; margin-bottom: 0.25rem; }
+.sv-blue { color: var(--sky-primary); } .sv-teal { color: var(--emerald-main); } .sv-purple { color: #7c3aed; } .sv-amber { color: var(--amber-main); }
+.stat-sub { font-size: 0.75rem; color: var(--txt-muted); }
+
+.borderless-card { background: var(--surface); border-radius: var(--radius-xl); padding: 2rem; box-shadow: var(--shadow-soft); margin-bottom: 2rem; border: 1px solid #f1f5f9; }
+.table-air { width: 100%; border-collapse: collapse; font-size: 0.925rem; }
+.table-air th { color: var(--txt-muted); font-weight: 700; padding: 12px 16px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+.table-air td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; color: var(--txt-main); vertical-align: middle; }
+.table-air tr:last-child td { border-bottom: none; }
+
+.app-footer { background: var(--surface); border-top: 1px solid #e2e8f0; color: var(--txt-sub); padding: 2.5rem 0; margin-top: 4rem; font-size: 0.875rem; }
+
+[data-theme="dark"] .stat-card { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+[data-theme="dark"] .stat-label { color: #cbd5e1; }
+[data-theme="dark"] .stat-sub { color: #cbd5e1; }
+[data-theme="dark"] .table-air th { border-bottom-color: #475569; color: #f1f5f9; }
+[data-theme="dark"] .table-air td { border-bottom-color: #334155; color: #e2e8f0; }
+
+.f-label { font-family: var(--font-main); font-size: 0.875rem; color: var(--txt-sub); font-weight: 600; }
+.f-input { width: 100%; border: 1.5px solid #cbd5e1; border-radius: 0.5rem; padding: 0.75rem; font-size: 0.95rem; outline: none; font-family: var(--font-main); transition: all 0.2s; background: var(--surface); color: var(--txt-main); }
+.f-input:focus { border-color: var(--sky-primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+
+@media(max-width: 768px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
-<div class="shell">
 
-<!-- TOPNAV -->
-<div class="topnav">
-  <a href="/CampusNav/main_admin.jsp" class="logo">
-    <span class="logo-dot"><img src="/CampusNav/images/logo.png" alt="ICT"></span>
-    ICT Campus<em>Nav</em>
-  </a>
-  <div class="nav-right">
-    <span style="font-family:var(--mono);font-size:13px;color:var(--txt2)"><i class="bi bi-person-circle"></i> <%= loginName %></span>
-    <span class="role-chip">운영관리자</span>
-    <a href="/CampusNav/asset_manage.jsp" class="chip" style="background:var(--blue);color:white;border-color:var(--blue)"><i class="bi bi-pencil-square"></i> 자원 관리</a>
-    <a href="/CampusNav/search.jsp" class="chip"><i class="bi bi-search"></i> 검색</a>
-    <a href="/CampusNav/transfer.jsp" class="chip"><i class="bi bi-arrow-left-right"></i> 이관내역</a>
-    <a href="/CampusNav/professor.jsp" class="chip"><i class="bi bi-people"></i> 교수</a>
-    <form action="/CampusNav/logout" method="post" style="margin:0"><button type="submit" class="chip"><i class="bi bi-box-arrow-right"></i> 로그아웃</button></form>
-  </div>
-</div>
+<!-- TOP NAVIGATION BAR -->
+<header class="app-header">
+  <div class="container-fluid px-4 px-md-5">
+    <nav class="navbar navbar-expand-lg py-2.5 px-0">
+      <a class="brand-logo" href="/CAN/main_admin.jsp">
+        <i class="bi bi-compass-fill text-info fs-3"></i>
+        <span>ICT <strong>CAN</strong></span>
+        <span class="brand-badge">ADMIN</span>
+      </a>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-content">
-    <div class="hero-eyebrow">// ICT CampusNav · 운영관리자</div>
-    <div class="hero-title">대학 자원 <span>운영 현황</span> 📊</div>
-    <div class="hero-desc">DB 실시간 연동 — 전체 자산, 이관, 폐기, 예약을 통합 관리합니다.</div>
-    <div class="tag-row">
-      <span class="tag"><b><%= String.format("%,d",tA) %></b> 전체자산</span>
-      <span class="tag"><b><%= String.format("%,d",tT) %></b> 이관</span>
-      <span class="tag"><b><%= String.format("%,d",tD) %></b> 폐기</span>
-      <span class="tag"><b><%= String.format("%,d",tR) %></b> 예약</span>
-    </div>
-  </div>
-  <div class="hero-side"><div class="hero-illo">🛡</div></div>
-</div>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#appNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-<!-- STAT ROW -->
-<div class="stat-row">
-  <div class="stat-card" onclick="location.href='/CampusNav/search.jsp'">
-    <div class="stat-icon si-blue"><i class="bi bi-box-seam" style="color:var(--blue);font-size:20px"></i></div>
-    <div><div class="stat-label">전체 자산 (DB)</div><div class="stat-val sv-blue"><%= String.format("%,d",tA) %></div><div class="stat-sub">공기구·집기·SW</div></div>
-  </div>
-  <div class="stat-card" onclick="location.href='/CampusNav/transfer.jsp'">
-    <div class="stat-icon si-teal"><i class="bi bi-arrow-left-right" style="color:var(--teal);font-size:20px"></i></div>
-    <div><div class="stat-label">이관 이력 (DB)</div><div class="stat-val sv-teal"><%= String.format("%,d",tT) %></div><div class="stat-sub">2025~2026년</div></div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon si-purple"><i class="bi bi-trash" style="color:var(--purple);font-size:20px"></i></div>
-    <div><div class="stat-label">폐기 처리 (DB)</div><div class="stat-val sv-purple"><%= String.format("%,d",tD) %></div><div class="stat-sub">제각·폐기</div></div>
-  </div>
-  <div class="stat-card" onclick="location.href='/CampusNav/reserve.jsp'">
-    <div class="stat-icon si-amber"><i class="bi bi-calendar-check" style="color:var(--amber);font-size:20px"></i></div>
-    <div><div class="stat-label">예약 현황 (DB)</div><div class="stat-val sv-amber"><%= String.format("%,d",tR) %></div><div class="stat-sub">전체 누적</div></div>
-  </div>
-</div>
+      <div class="collapse navbar-collapse" id="appNavbar">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 mt-3 mt-lg-0">
+          <li class="nav-item">
+            <a class="nav-link-btn" href="/CAN/search.jsp"><i class="bi bi-search"></i> 검색</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link-btn" href="/CAN/transfer.jsp"><i class="bi bi-arrow-left-right"></i> 이관내역</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link-btn" href="/CAN/asset_manage.jsp"><i class="bi bi-pencil-square"></i> 자원관리</a>
+          </li>
 
-<div class="main-grid">
-  <div class="left-col">
-    <!-- 빠른 이동 -->
-    <div class="card">
-      <div class="card-head">
-        <div class="ch-icon si-blue"><i class="bi bi-lightning" style="color:var(--blue)"></i></div>
-        <div><div class="ch-title">빠른 이동</div><div class="ch-sub">주요 기능으로 바로 이동</div></div>
+          <li class="nav-item ms-lg-3 my-2 my-lg-0">
+            <div class="user-tag-pill">
+              <i class="bi bi-person-circle text-info fs-6"></i>
+              <span><%= loginName %> 관리자</span>
+            </div>
+          </li>
+
+          <li class="nav-item">
+            <button type="button" class="theme-toggle" onclick="toggleTheme()">
+              <i class="bi bi-moon" id="themeIcon"></i>
+            </button>
+          </li>
+
+          <li class="nav-item">
+            <form action="/CAN/logout" method="post" class="m-0">
+              <button type="submit" class="btn border-0 bg-transparent nav-link-btn text-danger">
+                <i class="bi bi-box-arrow-right"></i> 로그아웃
+              </button>
+            </form>
+          </li>
+        </ul>
       </div>
-      <div class="card-body">
-        <div class="cat-grid">
-          <a href="/CampusNav/search.jsp" class="cat-item"><i class="bi bi-search" style="color:var(--blue)"></i><span>자원 검색</span></a>
-          <a href="/CampusNav/transfer.jsp" class="cat-item"><i class="bi bi-arrow-left-right" style="color:var(--purple)"></i><span>이관내역</span></a>
-          <a href="/CampusNav/professor.jsp" class="cat-item"><i class="bi bi-people-fill" style="color:var(--teal)"></i><span>교수 자원</span></a>
-          <a href="/CampusNav/reserve.jsp" class="cat-item"><i class="bi bi-calendar-check" style="color:var(--amber)"></i><span>예약 관리</span></a>
-          <a href="/CampusNav/search.jsp?type=공기구비품" class="cat-item"><i class="bi bi-tools" style="color:var(--blue)"></i><span>공기구비품</span></a>
-          <a href="/CampusNav/search.jsp?type=집기비품" class="cat-item"><i class="bi bi-laptop" style="color:var(--teal)"></i><span>집기비품</span></a>
-          <a href="/CampusNav/asset_manage.jsp" class="cat-item" style="border-color:var(--blue);background:var(--blue-lt)"><i class="bi bi-pencil-square" style="color:var(--blue)"></i><span style="color:var(--blue);font-weight:700">자원 관리</span></a>
+    </nav>
+  </div>
+</header>
+
+<main class="container-xl pb-5">
+
+  <% if(!okMsg.isEmpty()){%>
+  <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i><%= okMsg %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <%}%>
+  <% if(!errMsg.isEmpty()){%>
+  <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+    <i class="bi bi-exclamation-circle-fill me-2"></i><%= errMsg %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <%}%>
+
+  <!-- 2컬럼 레이아웃: 좌측(메인) + 우측(빠른이동) -->
+  <div style="display:flex;gap:2rem;flex-wrap:wrap">
+    <div style="flex:1;min-width:0">
+
+      <!-- 이관내역 등록 (제일 위) -->
+      <div class="borderless-card">
+        <h2 class="fw-bold fs-5 m-0 mb-4">
+          <i class="bi bi-arrow-left-right text-info me-2"></i>이관내역 등록
+        </h2>
+        <form method="post" action="/CAN/main_admin.jsp">
+          <input type="hidden" name="act" value="addTransfer">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="f-label">자산번호 *</label>
+              <input class="f-input" type="text" name="t_asset_no" placeholder="예) 8402C0001" required>
+            </div>
+            <div class="col-md-4">
+              <label class="f-label">이관일자 *</label>
+              <input class="f-input" type="date" name="t_date" required>
+            </div>
+            <div class="col-md-4">
+              <label class="f-label">이관 전 부서</label>
+              <input class="f-input" type="text" name="t_from_dept" placeholder="예) AI소프트웨어학과">
+            </div>
+            <div class="col-md-4">
+              <label class="f-label">이관 전 위치</label>
+              <input class="f-input" type="text" name="t_from_loc" placeholder="예) 301호">
+            </div>
+            <div class="col-md-4">
+              <label class="f-label">이관 후 부서</label>
+              <input class="f-input" type="text" name="t_to_dept" placeholder="예) 컴퓨터공학과">
+            </div>
+            <div class="col-md-4">
+              <label class="f-label">이관 후 위치</label>
+              <input class="f-input" type="text" name="t_to_loc" placeholder="예) 402호">
+            </div>
+            <div class="col-12">
+              <label class="f-label">비고</label>
+              <input class="f-input" type="text" name="t_remark" placeholder="이관 사유 등">
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i>DB에 이관내역 등록</button>
+              <a href="/CAN/transfer.jsp" class="btn btn-outline-secondary ms-2">전체 이관내역 보기</a>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- STATISTICS (가운데) -->
+      <div class="stat-row">
+        <div class="stat-card" onclick="location.href='/CAN/search.jsp'" style="cursor: pointer;">
+          <div class="stat-icon si-blue"><i class="bi bi-box-seam" style="color:var(--sky-primary);font-size:20px"></i></div>
+          <div>
+            <div class="stat-label">전체 자산</div>
+            <div class="stat-val sv-blue"><%= String.format("%,d",tA) %></div>
+            <div class="stat-sub">DB 연동</div>
+          </div>
+        </div>
+        <div class="stat-card" onclick="location.href='/CAN/transfer.jsp'" style="cursor: pointer;">
+          <div class="stat-icon si-teal"><i class="bi bi-arrow-left-right" style="color:var(--emerald-main);font-size:20px"></i></div>
+          <div>
+            <div class="stat-label">이관 이력</div>
+            <div class="stat-val sv-teal"><%= String.format("%,d",tT) %></div>
+            <div class="stat-sub">누적</div>
+          </div>
+        </div>
+        <div class="stat-card" onclick="location.href='/CAN/disposal_admin.jsp'" style="cursor: pointer;">
+          <div class="stat-icon si-purple"><i class="bi bi-trash" style="color:#7c3aed;font-size:20px"></i></div>
+          <div>
+            <div class="stat-label">폐기 처리</div>
+            <div class="stat-val sv-purple"><%= String.format("%,d",tD) %></div>
+            <div class="stat-sub">누적</div>
+          </div>
+        </div>
+        <div class="stat-card" onclick="location.href='/CAN/reservations_admin.jsp'" style="cursor: pointer;">
+          <div class="stat-icon si-amber"><i class="bi bi-calendar-check" style="color:var(--amber-main);font-size:20px"></i></div>
+          <div>
+            <div class="stat-label">전체 예약</div>
+            <div class="stat-val sv-amber"><%= String.format("%,d",tR) %></div>
+            <div class="stat-sub">누적</div>
+          </div>
         </div>
       </div>
-    </div>
-    <!-- 자산 분류별 현황 -->
-    <div class="card">
-      <div class="card-head">
-        <div class="ch-icon si-purple"><i class="bi bi-bar-chart" style="color:var(--purple)"></i></div>
-        <div><div class="ch-title">자산 분류별 현황</div><div class="ch-sub">DB 실시간</div></div>
+
+      <!-- 전체 예약 관리 (아래) -->
+      <div class="borderless-card">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <h2 class="fw-bold fs-5 m-0">
+            <i class="bi bi-calendar-check text-info me-2"></i>전체 예약 관리
+          </h2>
+        </div>
+
+        <% if(allReserves.isEmpty()){%>
+        <div style="text-align:center;padding:40px;color:var(--txt-muted)">
+          <i class="bi bi-calendar-x" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>
+          예약 내역이 없습니다.
+        </div>
+        <%}else{%>
+        <div class="table-responsive">
+          <table class="table-air">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>신청자</th>
+              <th>자산명</th>
+              <th>날짜</th>
+              <th>시간</th>
+              <th>상태</th>
+              <th class="text-end">관리</th>
+            </tr>
+          </thead>
+          <tbody>
+          <%for(Map<String,String> rv:allReserves){
+              String st=rv.get("status");
+              String chipClass=st.contains("취소")?"chip-cancel":st.contains("완료")?"chip-ok":"chip-warn";
+          %>
+          <tr>
+            <td class="font-monospace text-secondary"><%= rv.get("id") %></td>
+            <td>
+              <div class="fw-bold"><%= rv.get("uname") %></div>
+              <div class="text-muted small font-monospace"><%= rv.get("uid") %></div>
+            </td>
+            <td><%= rv.get("name") %></td>
+            <td class="font-monospace text-secondary"><%= rv.get("date") %></td>
+            <td class="font-monospace text-secondary"><%= rv.get("start") %> ~ <%= rv.get("end") %></td>
+            <td><span class="status-chip <%= chipClass %>"><%= st %></span></td>
+            <td class="text-end">
+              <%if("사용완료".equals(st)){%>
+              <form method="post" action="/CAN/main_admin.jsp" style="margin:0;display:inline" onchange="if(confirm('[관리자] 예약 #'+this.parentElement.parentElement.cells[0].textContent+' 연장하시겠습니까?')) this.submit(); else this.reset()">
+                <input type="hidden" name="act" value="extendReserve">
+                <input type="hidden" name="reserveId" value="<%= rv.get("id") %>">
+                <select name="extendHours" style="padding:4px 8px;font-size:12px;border:1.5px solid #cbd5e1;border-radius:6px;outline:none;background:white;color:var(--txt-main);cursor:pointer;">
+                  <option value="">연장</option>
+                  <option value="1">1시간</option>
+                  <option value="2">2시간</option>
+                  <option value="4">4시간</option>
+                  <option value="8">8시간</option>
+                </select>
+              </form>
+              <%}else if("예약완료".equals(st)){%>
+              <form method="post" action="/CAN/main_admin.jsp" style="margin:0;display:inline" onsubmit="return confirm('[관리자] 예약 #'+this.parentElement.parentElement.cells[0].textContent+'을 취소하시겠습니까?')">
+                <input type="hidden" name="act" value="cancelReserve">
+                <input type="hidden" name="reserveId" value="<%= rv.get("id") %>">
+                <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: var(--radius-pill);"><i class="bi bi-x-circle"></i>취소</button>
+              </form>
+              <%}else{%><span class="text-muted small">-</span><%}%>
+            </td>
+          </tr>
+          <%}%>
+          </tbody>
+          </table>
+        </div>
+        <%}%>
       </div>
-      <div class="card-body">
-        <ul class="admin-list">
-          <li class="admin-item">
-            <span class="admin-label">공기구비품</span>
-            <div style="flex:1;margin:0 16px;background:var(--line);border-radius:4px;height:8px;overflow:hidden">
-              <div style="background:var(--blue);height:100%;width:<%= tA>0?tGong*100/tA:0 %>%;border-radius:4px"></div>
-            </div>
-            <span class="admin-val"><%= String.format("%,d",tGong) %></span>
+
+    </div>
+
+    <!-- 우측: 빠른이동 (280px 고정) -->
+    <div style="width:280px;flex-shrink:0">
+      <!-- 빠른이동 -->
+      <div class="borderless-card">
+        <h2 class="fw-bold fs-5 m-0 mb-3">
+          <i class="bi bi-lightning-fill me-2"></i>빠른 이동
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:8px">
+          <a href="/CAN/search.jsp" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--sky-bg);border:1.5px solid #7dd3fc;border-radius:var(--radius-lg);padding:8px 10px;text-decoration:none;color:var(--sky-primary);font-weight:600;font-size:0.75rem;transition:all 0.2s;height:auto;justify-content:center;text-align:center">
+            <i class="bi bi-search" style="font-size:18px"></i><span style="line-height:1.2">검색</span>
+          </a>
+          <a href="/CAN/asset_manage.jsp" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:var(--radius-lg);padding:8px 10px;text-decoration:none;color:#16a34a;font-weight:600;font-size:0.75rem;transition:all 0.2s;height:auto;justify-content:center;text-align:center">
+            <i class="bi bi-pencil-square" style="font-size:18px"></i><span style="line-height:1.2">자원</span>
+          </a>
+          <a href="/CAN/transfer.jsp" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:#f5f3ff;border:1.5px solid #d8b4fe;border-radius:var(--radius-lg);padding:8px 10px;text-decoration:none;color:#7c3aed;font-weight:600;font-size:0.75rem;transition:all 0.2s;height:auto;justify-content:center;text-align:center">
+            <i class="bi bi-arrow-left-right" style="font-size:18px"></i><span style="line-height:1.2">이관</span>
+          </a>
+          <a href="/CAN/professor.jsp" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:var(--radius-lg);padding:8px 10px;text-decoration:none;color:#d97706;font-weight:600;font-size:0.75rem;transition:all 0.2s;height:auto;justify-content:center;text-align:center">
+            <i class="bi bi-people" style="font-size:18px"></i><span style="line-height:1.2">교수</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 운영 현황 -->
+      <div class="borderless-card">
+        <h2 class="fw-bold fs-5 m-0 mb-3">
+          <i class="bi bi-clipboard-data me-2"></i>운영 현황
+        </h2>
+        <ul style="list-style:none;padding:0;margin:0">
+          <li style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9;font-size:0.95rem">
+            <span style="color:var(--txt-sub)">전체 자산</span>
+            <span style="font-weight:700;font-family:var(--font-mono)"><%= String.format("%,d",tA) %>건</span>
           </li>
-          <li class="admin-item">
-            <span class="admin-label">집기비품</span>
-            <div style="flex:1;margin:0 16px;background:var(--line);border-radius:4px;height:8px;overflow:hidden">
-              <div style="background:var(--teal);height:100%;width:<%= tA>0?tJip*100/tA:0 %>%;border-radius:4px"></div>
-            </div>
-            <span class="admin-val"><%= String.format("%,d",tJip) %></span>
+          <li style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9;font-size:0.95rem">
+            <span style="color:var(--txt-sub)">이관 이력</span>
+            <span style="font-weight:700;font-family:var(--font-mono)"><%= String.format("%,d",tT) %>건</span>
           </li>
-          <li class="admin-item">
-            <span class="admin-label">소프트웨어</span>
-            <div style="flex:1;margin:0 16px;background:var(--line);border-radius:4px;height:8px;overflow:hidden">
-              <div style="background:var(--purple);height:100%;width:<%= tA>0?tSw*100/tA:0 %>%;border-radius:4px"></div>
-            </div>
-            <span class="admin-val"><%= String.format("%,d",tSw) %></span>
+          <li style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9;font-size:0.95rem">
+            <span style="color:var(--txt-sub)">폐기 처리</span>
+            <span style="font-weight:700;font-family:var(--font-mono)"><%= String.format("%,d",tD) %>건</span>
+          </li>
+          <li style="display:flex;justify-content:space-between;padding:12px 0;font-size:0.95rem">
+            <span style="color:var(--txt-sub)">전체 예약</span>
+            <span style="font-weight:700;font-family:var(--font-mono)"><%= String.format("%,d",tR) %>건</span>
           </li>
         </ul>
       </div>
     </div>
   </div>
-  <div class="right-col">
-<!-- 실내 네비게이션 -->
-    <div class="card">
-      <div class="card-head">
-        <div class="ch-icon si-teal"><i class="bi bi-compass" style="color:var(--teal)"></i></div>
-        <div><div class="ch-title">실내 네비게이션</div><div class="ch-sub">현재 위치 기준 최적 경로 안내</div></div>
-      </div>
-      <div class="card-body">
-        <div class="map-frame">
-          <div class="map-icon">🧭</div>
-          <div class="map-label">캠퍼스 실내 지도 / 경로 안내</div>
-          <div class="map-note">현재 위치에서 강의실, 연구실, 장비실, 교수실까지의 최적 경로를 안내합니다</div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="app-footer">
+  <div class="container-xl">
+    <div class="row gy-3 align-items-center">
+      <div class="col-md-6 text-center text-md-start">
+        <div class="fw-bold text-dark mb-1">
+          <i class="bi bi-compass-fill me-1 text-info"></i> ICT CAN Navigation System
         </div>
-        <input type="text" id="navDest" class="map-search" placeholder="예) 공학관 301호, 이교수 연구실">
-        <div class="map-btns">
-          <a href="#" class="btn-nav-prim" onclick="goNav();return false;"><i class="bi bi-geo-alt-fill me-1"></i>현재 위치 길찾기</a>
-          <a href="/CampusNav/navigationTest1.jsp" class="btn-nav-ghost"><i class="bi bi-arrow-repeat me-1"></i>대체 경로 보기</a>
-        </div>
-        <div id="navMsg" style="display:none;margin-top:10px;padding:10px 13px;background:var(--teal-lt);border:1px solid var(--teal-md);border-radius:var(--r);font-size:13px;color:var(--teal)"></div>
+        <div>ICT폴리텍대학 교내 자원 내비게이션 시스템</div>
       </div>
-    </div>
-    <!-- 서비스 요약 -->
-    <div class="card">
-      <div class="card-head">
-        <div class="ch-icon si-amber"><i class="bi bi-clipboard-data" style="color:var(--amber)"></i></div>
-        <div><div class="ch-title">관리자 서비스 요약</div><div class="ch-sub">오늘의 운영 현황</div></div>
+      <div class="col-md-6 text-center text-md-end small">
+        <div class="text-dark fw-bold">Made by AI 소프트웨어학과</div>
+        <div>박승순 · 권동해 · 원태연 · 이수혁</div>
+        <div class="mt-1 opacity-75">&copy; 2026 ICT CAN. All rights reserved.</div>
       </div>
-      <div class="card-body" style="padding:14px 24px">
-        <ul class="admin-list">
-          <li class="admin-item"><span class="admin-label">전체 자산 (DB)</span><span class="admin-val sv-blue"><%= String.format("%,d",tA) %>건</span></li>
-          <li class="admin-item"><span class="admin-label">이관 이력</span><span class="admin-val"><%= String.format("%,d",tT) %>건</span></li>
-          <li class="admin-item"><span class="admin-label">폐기 처리</span><span class="admin-val"><%= String.format("%,d",tD) %>건</span></li>
-          <li class="admin-item"><span class="admin-label">전체 예약</span><span class="admin-val"><%= String.format("%,d",tR) %>건</span></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script>
-function goNav(){
-  var dest=document.getElementById('navDest');if(!dest)return;
-  var d=dest.value.trim(),url='/CampusNav/navigationTest1.jsp';
-  if(d)url+='?destName='+encodeURIComponent(d);
-  var msg=document.getElementById('navMsg');
-  if(msg){msg.innerHTML='<i class="bi bi-compass me-1"></i>'+(d?'목적지: <strong>'+d+'</strong> — 경로 계산 중...':'현재 위치 탐색 중...')+'<br><small style="opacity:.75">GPS 설치 후 실시간 경로 표시</small>';msg.style.display='block';}
-  setTimeout(function(){location.href=url;},800);
-}
-</script>
-<!-- ══ SITE FOOTER ══ -->
-<footer class="site-footer">
-  <div class="footer-inner">
-    <a href="/CampusNav/campuslogin.jsp" class="footer-logo">
-      <span class="footer-logo-dot"><img src="/CampusNav/images/logo.png" alt="ICT"></span>
-      ICT Campus<em>Nav</em>
-    </a>
-    <div class="footer-team">
-      <strong>Made by AI 소프트웨어학과</strong><br>
-      박승순 &nbsp;&middot;&nbsp; 권동해 &nbsp;&middot;&nbsp; 원태연 &nbsp;&middot;&nbsp; 이수혁
-    </div>
-    <div class="footer-copy">
-      ICT폴리텍대학<br>
-      교내 자원 내비게이션 시스템<br>
-      Copyright &copy; 2026 ICT CampusNav. All rights reserved.
     </div>
   </div>
 </footer>
 
-</body></html>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Dark Mode Toggle
+function toggleTheme(){
+  var html=document.documentElement;
+  var currentTheme=html.getAttribute('data-theme');
+  var newTheme=currentTheme==='dark'?'light':'dark';
+  html.setAttribute('data-theme',newTheme);
+  localStorage.setItem('theme',newTheme);
+  updateThemeIcon();
+}
+
+function updateThemeIcon(){
+  var icon=document.getElementById('themeIcon');
+  var html=document.documentElement;
+  var theme=html.getAttribute('data-theme');
+  if(theme==='dark'){
+    icon.className='bi bi-sun';
+  }else{
+    icon.className='bi bi-moon';
+  }
+}
+
+// Initialize theme on page load
+window.addEventListener('DOMContentLoaded',function(){
+  var savedTheme=localStorage.getItem('theme');
+  var html=document.documentElement;
+
+  if(savedTheme){
+    html.setAttribute('data-theme',savedTheme);
+  }else if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+    html.setAttribute('data-theme','dark');
+  }
+
+  updateThemeIcon();
+});
+</script>
+</body>
+</html>

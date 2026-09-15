@@ -8,7 +8,6 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 public class GuestServlet extends HttpServlet {
-
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -19,6 +18,6 @@ public class GuestServlet extends HttpServlet {
         session.setAttribute("loginName", "게스트");
         session.setAttribute("loginRole", "guest");
         session.setMaxInactiveInterval(60 * 60);
-        resp.sendRedirect("/CampusNav/main_guest.jsp");
+        resp.sendRedirect("/CAN/main_guest.jsp");
     }
 }

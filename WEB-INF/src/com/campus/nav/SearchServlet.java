@@ -23,7 +23,7 @@ public class SearchServlet extends HttpServlet {
         // 로그인 체크
         if (req.getSession(false) == null ||
             req.getSession(false).getAttribute("loginUser") == null) {
-            resp.sendRedirect("/CampusNav/campuslogin.jsp");
+            resp.sendRedirect("/CAN/campuslogin.jsp");
             return;
         }
 

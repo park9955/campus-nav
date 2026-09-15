@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(net stop Tomcat9)",
+      "Bash(net start Tomcat9)"
+    ]
+  }
+}
