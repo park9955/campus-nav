@@ -204,6 +204,11 @@ a { text-decoration: none; color: inherit; }
           <li class="nav-item">
             <a class="nav-link-btn" href="/CAN/professor.jsp"><i class="bi bi-people"></i> 교수</a>
           </li>
+          <% if("admin".equals(session.getAttribute("loginRole"))) { %>
+          <li class="nav-item">
+            <a class="nav-link-btn" href="/CAN/transportRequest.jsp"><i class="bi bi-box-seam"></i> 자원 운송</a>
+          </li>
+          <% } %>
 
           <li class="nav-item ms-lg-3 my-2 my-lg-0">
             <div class="user-tag-pill">

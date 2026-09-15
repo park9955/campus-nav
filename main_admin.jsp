@@ -319,6 +319,9 @@ a { text-decoration: none; color: inherit; }
           <li class="nav-item">
             <a class="nav-link-btn" href="/CAN/asset_manage.jsp"><i class="bi bi-pencil-square"></i> 자원관리</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link-btn" href="/CAN/dashboard.jsp"><i class="bi bi-box-seam"></i> 자원 운송</a>
+          </li>
 
           <li class="nav-item ms-lg-3 my-2 my-lg-0">
             <div class="user-tag-pill">

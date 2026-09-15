@@ -359,6 +359,11 @@ a { text-decoration: none; color: inherit; }
           <li class="nav-item">
             <a class="nav-link-btn" href="/CAN/navigationTest1.jsp"><i class="bi bi-geo-alt"></i> 실내 길찾기</a>
           </li>
+          <% if("admin".equals(session.getAttribute("loginRole"))) { %>
+          <li class="nav-item">
+            <a class="nav-link-btn" href="/CAN/transportRequest.jsp"><i class="bi bi-box-seam"></i> 자원 운송</a>
+          </li>
+          <% } %>
 
           <li class="nav-item ms-lg-3 my-2 my-lg-0">
             <div class="user-tag-pill">
