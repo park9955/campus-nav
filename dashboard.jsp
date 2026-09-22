@@ -51,6 +51,32 @@ try {
 
   --font-main: 'Pretendard', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --border-color: rgba(226, 232, 240, 0.8);
+
+  --flow-box-bg: #f8fafc;
+  --flow-border: #e2e8f0;
+  --flow-item-bg: #ffffff;
+  --flow-item-txt: #0f172a;
+}
+
+[data-theme="dark"] {
+  --bg-app: #0f172a;
+  --surface: #1e293b;
+  --txt-main: #f8fafc;
+  --txt-sub: #e2e8f0;
+  --txt-muted: #94a3b8;
+  --sky-primary: #38bdf8;
+  --sky-hover: #0ea5e9;
+  --sky-light: #0c4a6e;
+  --sky-bg: #1e3a5f;
+  --header-bg: rgba(30, 41, 59, 0.95);
+  --border-color: rgba(71, 85, 105, 0.6);
+
+  --flow-box-bg: #0f172a;
+  --flow-border: #334155;
+  --flow-item-bg: #1e293b;
+  --flow-item-txt: #f8fafc;
 }
 
 body {
@@ -62,22 +88,29 @@ body {
     #f0f4f9 100%
   );
   background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--txt-main);
   line-height: 1.6;
   margin: 0;
   padding: 0;
+  transition: background 0.3s ease, color 0.3s ease;
   -webkit-font-smoothing: antialiased;
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(180deg, #0f172a 0%, #1a2f3a 40%, #1a332f 100%);
 }
 
 a { text-decoration: none; color: inherit; }
 
 .app-header {
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--header-bg);
   backdrop-filter: blur(16px);
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s ease;
 }
 
 .brand-logo {
@@ -116,9 +149,90 @@ a { text-decoration: none; color: inherit; }
   color: var(--sky-primary);
 }
 
+[data-theme="dark"] .brand-logo {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .nav-link-btn {
+  color: #e2e8f0;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .nav-link-btn:hover {
+  background: var(--sky-bg);
+  color: #38bdf8;
+}
+
+[data-theme="dark"] .stat-pill-label {
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .stat-pill-num {
+  color: #e2e8f0;
+  font-weight: 800;
+}
+
+[data-theme="dark"] .stat-item-blue {
+  background: #1e3a5f;
+  border-color: #0c4a6e;
+}
+
+[data-theme="dark"] .stat-item-blue .stat-pill-icon {
+  background: #0c2d42;
+  color: #38bdf8;
+}
+
+[data-theme="dark"] .stat-item-green {
+  background: #1a3a2a;
+  border-color: #1e5a48;
+}
+
+[data-theme="dark"] .stat-item-green .stat-pill-icon {
+  background: #0d2d24;
+  color: #4ade80;
+}
+
+[data-theme="dark"] .stat-item-amber {
+  background: #3a3a1f;
+  border-color: #56540a;
+}
+
+[data-theme="dark"] .stat-item-amber .stat-pill-icon {
+  background: #2a2a08;
+  color: #fbbf24;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--txt-sub);
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  padding: 6px 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.theme-toggle:hover {
+  background: var(--sky-bg);
+  color: var(--sky-primary);
+}
+
+[data-theme="dark"] .theme-toggle {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background: var(--sky-bg);
+  color: #38bdf8;
+}
+
 .user-tag-pill {
   background: var(--surface);
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border-color);
   padding: 6px 16px;
   border-radius: var(--radius-pill);
   display: flex;
@@ -130,8 +244,8 @@ a { text-decoration: none; color: inherit; }
 }
 
 .hero-balanced-section {
-  padding-top: 2rem;
-  padding-bottom: 2.5rem;
+  padding-top: 1.5rem;
+  padding-bottom: 2rem;
 }
 
 .welcome-profile-card {
@@ -264,22 +378,65 @@ a { text-decoration: none; color: inherit; }
   font-family: var(--font-mono);
 }
 
-.section-head-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin-bottom: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .borderless-card {
   background: var(--surface);
   border-radius: var(--radius-xl);
   padding: 2.25rem;
   box-shadow: var(--shadow-soft);
   margin-bottom: 2rem;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--border-color);
+}
+
+/* 직사각형 스타일 스텝 프로세스 네비게이션 */
+.flow-nav-container {
+  background: var(--surface);
+  border-radius: 0; /* 컨테이너 직사각형화 */
+  padding: 1.25rem 1.75rem;
+  box-shadow: var(--shadow-soft);
+  margin-top: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.flow-nav-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scroll-behavior: smooth;
+}
+
+.flow-nav-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.flow-nav-wrapper::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 0;
+}
+
+.flow-step-item {
+  display: flex;
+  align-items: center;
+  background: var(--flow-box-bg);
+  border: 1px solid var(--flow-border);
+  color: var(--flow-item-txt);
+  padding: 6px 14px;
+  border-radius: 0; /* 라운드 제거 -> 직사각형 구조 */
+  font-size: 0.825rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.flow-step-item:hover {
+  border-color: var(--sky-primary);
+  color: var(--sky-primary);
+}
+
+.flow-step-arrow {
+  color: var(--txt-muted);
+  font-size: 0.85rem;
+  flex-shrink: 0;
 }
 
 .table-air {
@@ -292,13 +449,13 @@ a { text-decoration: none; color: inherit; }
   color: var(--txt-muted);
   font-weight: 700;
   padding: 12px 16px;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--border-color);
   text-align: left;
 }
 
 .table-air td {
   padding: 18px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-color);
   color: var(--txt-main);
   vertical-align: middle;
 }
@@ -315,9 +472,15 @@ a { text-decoration: none; color: inherit; }
 .chip-ok { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
 .chip-pending { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
 
+[data-theme="dark"] .chip-ok {
+  background: #064e3b;
+  color: #6ee7b7;
+  border-color: #047857;
+}
+
 .app-footer {
   background: var(--surface);
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border-color);
   color: var(--txt-sub);
   padding: 2.5rem 0;
   margin-top: 4rem;
@@ -370,6 +533,12 @@ a { text-decoration: none; color: inherit; }
           </li>
 
           <li class="nav-item">
+            <button type="button" class="theme-toggle" onclick="toggleTheme()">
+              <i class="bi bi-moon" id="themeIcon"></i>
+            </button>
+          </li>
+
+          <li class="nav-item">
             <form action="/CAN/logout" method="post" class="m-0">
               <button type="submit" class="btn border-0 bg-transparent nav-link-btn text-danger">
                 <i class="bi bi-box-arrow-right"></i> 로그아웃
@@ -384,7 +553,39 @@ a { text-decoration: none; color: inherit; }
 
 <main class="container-xl pb-5">
 
-  <!-- 1. HERO INTERACTIVE CANVAS -->
+  <!-- 1. 최상단 배치: 전체 처리 흐름 (직사각형 네비게이션 바 형태) -->
+  <section class="flow-nav-container">
+    <div class="d-flex align-items-center mb-2">
+      <span class="fw-bold fs-6 text-info me-2"><i class="bi bi-diagram-3"></i> 전체 처리 흐름</span>
+    </div>
+    <div class="flow-nav-wrapper">
+      <div class="flow-step-item">자원 선택</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item">출발지 선택</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item">목표지 선택</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item">운송체 선택</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item">이동불가 Edge 제거</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item">A* 최적경로 탐색</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item">운송 시작</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item">장애물 감지</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item">Edge 차단</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item">현재 위치 기준 A* 재탐색</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item">우회경로</div>
+      <i class="bi bi-chevron-right flow-step-arrow"></i>
+      <div class="flow-step-item fw-bold text-success">운송완료</div>
+    </div>
+  </section>
+
+  <!-- 2. HERO INTERACTIVE CANVAS -->
   <section class="hero-balanced-section">
     <div class="row g-4 align-items-stretch">
       <div class="col-lg-7 text-start">
@@ -431,24 +632,6 @@ a { text-decoration: none; color: inherit; }
               <div class="stat-pill-num" style="color: var(--amber-main);"><%=vehicleCount%></div>
             </div>
             <i class="bi bi-chevron-right text-muted small"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 2. SYSTEM FLOW SECTION -->
-  <section class="borderless-card">
-    <h2 class="fw-bold fs-5 m-0 mb-3">
-      <i class="bi bi-diagram-3 text-info me-2"></i>전체 처리 흐름
-    </h2>
-    <div class="row">
-      <div class="col-12">
-        <div style="background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid #e2e8f0;">
-          <div style="font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.8; color: var(--txt-sub); word-break: break-word;">
-            자원 선택 → 출발지 선택 → 목표지 선택 → 운송체 선택 → 이동불가 Edge 제거 →
-            A* 최적경로 탐색 → 운송 시작 → 장애물 감지 → Edge 차단 →
-            현재 위치 기준 A* 재탐색 → 우회경로 → 운송완료
           </div>
         </div>
       </div>
@@ -502,19 +685,51 @@ a { text-decoration: none; color: inherit; }
   <div class="container-xl">
     <div class="row gy-3 align-items-center">
       <div class="col-md-6 text-center text-md-start">
-        <div class="fw-bold text-dark mb-1">
+        <div class="fw-bold mb-1">
           <i class="bi bi-truck-front me-1 text-info"></i> 운송 관리 시스템
         </div>
-        <div>지능형 운송 관리 및 경로 최적화 시스템</div>
+        <div class="text-muted">지능형 운송 관리 및 경로 최적화 시스템</div>
       </div>
       <div class="col-md-6 text-center text-md-end small">
-        <div class="text-dark fw-bold">개발팀</div>
-        <div>&copy; 2026 운송 관리 시스템. All rights reserved.</div>
+        <div class="fw-bold">개발팀</div>
+        <div class="text-muted">&copy; 2026 운송 관리 시스템. All rights reserved.</div>
       </div>
     </div>
   </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleTheme(){
+  var html=document.documentElement;
+  var currentTheme=html.getAttribute('data-theme');
+  var newTheme=currentTheme==='dark'?'light':'dark';
+  html.setAttribute('data-theme',newTheme);
+  localStorage.setItem('theme',newTheme);
+  updateThemeIcon();
+}
+
+function updateThemeIcon(){
+  var icon=document.getElementById('themeIcon');
+  var html=document.documentElement;
+  var theme=html.getAttribute('data-theme');
+  if(theme==='dark'){
+    icon.className='bi bi-sun';
+  }else{
+    icon.className='bi bi-moon';
+  }
+}
+
+window.addEventListener('DOMContentLoaded',function(){
+  var savedTheme=localStorage.getItem('theme');
+  var html=document.documentElement;
+  if(savedTheme){
+    html.setAttribute('data-theme',savedTheme);
+  }else if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+    html.setAttribute('data-theme','dark');
+  }
+  updateThemeIcon();
+});
+</script>
 </body>
 </html>

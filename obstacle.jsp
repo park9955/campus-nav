@@ -1,37 +1,21 @@
-<%@ page contentType="text/html; charset=UTF-8" import="java.sql.*" %>
-<%!
-    public Connection getConnection() throws Exception {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        String url = "jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
-        return DriverManager.getConnection(url, "root", "1234");
-    }
-
-    public void close(AutoCloseable... objs) {
-        for (AutoCloseable obj : objs) {
-            if (obj != null) {
-                try { obj.close(); } catch(Exception e) {}
-            }
-        }
-    }
-%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ include file="db.jsp" %>
 <%
 request.setCharacterEncoding("UTF-8");String msg="",err="";
 if("POST".equalsIgnoreCase(request.getMethod())){
  Connection c=null;PreparedStatement ps=null;
  try{
-  c=getConnection();
-  ps=c.prepareStatement("REPLACE INTO transport_requests(request_id,resource_id,start_location_id,destination_location_id,vehicle_id,quantity,priority,scheduled_time,deadline,status) VALUES(?,?,?,?,?,?,?,?,?,'REQUESTED')");
-  ps.setString(1,request.getParameter("requestId"));
-  ps.setString(2,request.getParameter("resourceId"));
-  ps.setString(3,request.getParameter("startLocationId"));
-  ps.setString(4,request.getParameter("destinationLocationId"));
-  ps.setString(5,request.getParameter("vehicleId"));
-  ps.setInt(6,Integer.parseInt(request.getParameter("quantity")));
-  ps.setString(7,request.getParameter("priority"));
-  String stime=request.getParameter("scheduledTime"); if(stime==null||stime.isBlank())ps.setNull(8,Types.TIMESTAMP);else ps.setTimestamp(8,Timestamp.valueOf(stime.replace("T"," ")+":00"));
-  String deadline=request.getParameter("deadline"); if(deadline==null||deadline.isBlank())ps.setNull(9,Types.TIMESTAMP);else ps.setTimestamp(9,Timestamp.valueOf(deadline.replace("T"," ")+":00"));
-  ps.executeUpdate();msg="운송요청이 저장되었습니다.";
- }catch(Exception e){err=e.toString();}finally{close(ps,c);}
+  c=getConnection();c.setAutoCommit(false);
+  ps=c.prepareStatement("REPLACE INTO obstacles(obstacle_id,edge_id,obstacle_type,description,active) VALUES(?,?,?,?,TRUE)");
+  ps.setString(1,request.getParameter("obstacleId"));
+  ps.setString(2,request.getParameter("edgeId"));
+  ps.setString(3,request.getParameter("obstacleType"));
+  ps.setString(4,request.getParameter("description"));
+  ps.executeUpdate();ps.close();
+  ps=c.prepareStatement("UPDATE route_edges SET is_accessible=FALSE WHERE edge_id=?");
+  ps.setString(1,request.getParameter("edgeId"));ps.executeUpdate();
+  c.commit();msg="장애물이 등록되었고 해당 Edge가 ACCESSIBLE=FALSE로 변경되었습니다.";
+ }catch(Exception e){err=e.toString();try{if(c!=null)c.rollback();}catch(Exception x){}}finally{close(ps,c);}
 }
 %>
 <!DOCTYPE html>
@@ -39,7 +23,7 @@ if("POST".equalsIgnoreCase(request.getMethod())){
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>운송 요청</title>
+<title>장애물 관리</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,6 +42,7 @@ if("POST".equalsIgnoreCase(request.getMethod())){
   --sky-hover: #0369a1;
   --sky-light: #e0f2fe;
   --sky-bg: #f0f9ff;
+  --danger: #dc2626;
   --radius-xl: 28px;
   --radius-lg: 20px;
   --radius-pill: 999px;
@@ -131,6 +116,15 @@ a { text-decoration: none; color: inherit; }
   gap: 8px;
 }
 
+.borderless-card {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: 2.25rem;
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 2rem;
+  border: 1px solid #f1f5f9;
+}
+
 .form-section {
   background: var(--surface);
   border-radius: var(--radius-lg);
@@ -160,17 +154,19 @@ a { text-decoration: none; color: inherit; }
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
   padding: 0.75rem 1rem;
   border: 1.5px solid #cbd5e1;
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
   font-family: var(--font-main);
   font-size: 0.95rem;
   transition: all 0.2s;
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
   border-color: var(--sky-primary);
   outline: none;
   box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
@@ -199,8 +195,8 @@ a { text-decoration: none; color: inherit; }
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
 }
 
-.btn-secondary {
-  background: #626d79;
+.btn-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: #ffffff;
   padding: 0.75rem 2rem;
   border: none;
@@ -210,8 +206,9 @@ a { text-decoration: none; color: inherit; }
   transition: all 0.2s;
 }
 
-.btn-secondary:hover {
-  background: #525a66;
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
 }
 
 .msg {
@@ -232,6 +229,20 @@ a { text-decoration: none; color: inherit; }
   border-radius: var(--radius-lg);
 }
 
+.info-box {
+  padding: 1.25rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: var(--radius-lg);
+  color: #0369a1;
+  margin-bottom: 1.5rem;
+}
+
+.info-box strong {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
 .app-footer {
   background: var(--surface);
   border-top: 1px solid #e2e8f0;
@@ -247,7 +258,7 @@ a { text-decoration: none; color: inherit; }
 <header class="app-header">
   <div class="container-fluid px-4 px-md-5">
     <nav class="navbar navbar-expand-lg py-2.5 px-0">
-      <a class="brand-logo" href="/CAN/dashboard.jsp">
+      <a class="brand-logo" href="dashboard.jsp">
         <i class="bi bi-truck-front text-info fs-3"></i>
         <span>운송 <strong>관리</strong></span>
         <span class="brand-badge">ADMIN</span>
@@ -257,11 +268,10 @@ a { text-decoration: none; color: inherit; }
       </button>
       <div class="collapse navbar-collapse" id="appNavbar">
         <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 mt-3 mt-lg-0">
-          <li class="nav-item"><a class="nav-link-btn" href="transportRequest.jsp"><i class="bi bi-arrow-repeat"></i> 요청</a></li>
-          <li class="nav-item"><a class="nav-link-btn" href="transportStatus.jsp"><i class="bi bi-play-circle"></i> 현황</a></li>
-          <li class="nav-item"><a class="nav-link-btn" href="transportHistory.jsp"><i class="bi bi-clock-history"></i> 이력</a></li>
-          <li class="nav-item ms-lg-3"><a class="nav-link-btn btn btn-sm btn-info text-white fw-bold" style="border-radius: 999px; padding: 0.5rem 1rem;" href="/CAN/main_admin.jsp"><i class="bi bi-gear"></i> 관리 페이지</a></li>
-          <li class="nav-item"><a class="nav-link-btn" href="/CAN/main_student.jsp"><i class="bi bi-house"></i> 메인</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="node.jsp"><i class="bi bi-diagram-2"></i> Node</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="edge.jsp"><i class="bi bi-diagram-3"></i> Edge</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="obstacle.jsp"><i class="bi bi-exclamation-triangle"></i> 장애물</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="dashboard.jsp"><i class="bi bi-speedometer2"></i> 대시</a></li>
         </ul>
       </div>
     </nav>
@@ -272,89 +282,63 @@ a { text-decoration: none; color: inherit; }
 
   <section class="mt-4">
     <div class="section-title">
-      <i class="bi bi-arrow-repeat text-info"></i> 운송 요청 등록
+      <i class="bi bi-exclamation-triangle text-warning"></i> 장애물 및 Dynamic Re-routing
     </div>
   </section>
 
   <section class="form-section">
-    <h2 class="h5 mb-4">⑥ 운송 요청 생성</h2>
+    <h2 class="h5 mb-4">⑨ 장애물 등록 및 우회 처리</h2>
     <%if(!msg.equals("")){%><div class="msg">✓ <%=msg%></div><%}%>
     <%if(!err.equals("")){%><div class="err">✗ <%=err%></div><%}%>
+
+    <div class="info-box">
+      <strong><i class="bi bi-info-circle me-2"></i>장애물 등록 시 프로세스</strong>
+      장애물을 등록하면 해당 Edge의 통행 가능 여부가 자동으로 FALSE로 변경되며, 이를 통해 A* 재탐색 시 자동으로 우회경로가 선택됩니다.
+    </div>
 
     <form method="post">
       <div class="form-row">
         <div class="form-group">
-          <label>운송요청 ID</label>
-          <input name="requestId" value="REQ-2026-0001" required>
+          <label>Obstacle ID</label>
+          <input name="obstacleId" value="OBS-001" required>
         </div>
         <div class="form-group">
-          <label>운반 자원</label>
-          <select name="resourceId" required>
-            <%
-            Connection c1=null;Statement s1=null;ResultSet r1=null;
-            try{c1=getConnection();s1=c1.createStatement();r1=s1.executeQuery("SELECT resource_id,resource_name FROM resources ORDER BY resource_id");
-            while(r1.next()){%><option value="<%=r1.getString(1)%>"><%=r1.getString(1)%> - <%=r1.getString(2)%></option><%}}catch(Exception e){}finally{close(r1,s1,c1);}%>
-          </select>
+          <label>차단 Edge ID</label>
+          <input name="edgeId" value="E003" required>
         </div>
         <div class="form-group">
-          <label>출발지</label>
-          <select name="startLocationId" required>
-            <%
-            try{c1=getConnection();s1=c1.createStatement();r1=s1.executeQuery("SELECT location_id,location_name FROM locations ORDER BY location_id");
-            while(r1.next()){%><option value="<%=r1.getString(1)%>"><%=r1.getString(1)%> - <%=r1.getString(2)%></option><%}}catch(Exception e){}finally{close(r1,s1,c1);}%>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>목표지</label>
-          <select name="destinationLocationId" required>
-            <%
-            try{c1=getConnection();s1=c1.createStatement();r1=s1.executeQuery("SELECT location_id,location_name FROM locations ORDER BY location_id");
-            while(r1.next()){%><option value="<%=r1.getString(1)%>"><%=r1.getString(1)%> - <%=r1.getString(2)%></option><%}}catch(Exception e){}finally{close(r1,s1,c1);}%>
+          <label>장애물 유형</label>
+          <select name="obstacleType" required>
+            <option>공사</option>
+            <option>통제</option>
+            <option>사람</option>
+            <option>차량</option>
+            <option>시설물</option>
+            <option>기타</option>
           </select>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>운송체</label>
-          <select name="vehicleId" required>
-            <%
-            try{c1=getConnection();s1=c1.createStatement();r1=s1.executeQuery("SELECT vehicle_id,status,battery_soc FROM vehicles ORDER BY vehicle_id");
-            while(r1.next()){%><option value="<%=r1.getString(1)%>"><%=r1.getString(1)%> / <%=r1.getString(2)%> / <%=r1.getDouble(3)%>%</option><%}}catch(Exception e){}finally{close(r1,s1,c1);}%>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>수량</label>
-          <input name="quantity" type="number" value="1" min="1" required>
-        </div>
-        <div class="form-group">
-          <label>우선순위</label>
-          <select name="priority" required>
-            <option>긴급</option>
-            <option>높음</option>
-            <option selected>보통</option>
-            <option>낮음</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>운송 예정시간</label>
-          <input name="scheduledTime" type="datetime-local">
-        </div>
-        <div class="form-group">
-          <label>도착 제한시간</label>
-          <input name="deadline" type="datetime-local">
+          <label>설명</label>
+          <textarea name="description" rows="3">공사구간으로 통행불가</textarea>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn-primary">운송요청 저장</button>
-        <a href="routeSearch.jsp" class="btn btn-secondary">A* 경로탐색</a>
+        <button type="submit" class="btn-danger">장애물 등록 + Edge 차단</button>
+        <a href="routeSearch.jsp" class="btn btn-primary">A* 재탐색</a>
         <a href="dashboard.jsp" class="btn btn-outline-secondary" style="border-radius: var(--radius-pill); padding: 0.75rem 2rem;">대시보드</a>
       </div>
     </form>
+  </section>
+
+  <section class="borderless-card">
+    <h2 class="h5 mb-4"><i class="bi bi-arrow-repeat me-2"></i>우회 처리 흐름</h2>
+    <div style="background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid #e2e8f0; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; line-height: 1.8;">
+      장애물 발생 → 해당 Edge 차단 → ACCESSIBLE = FALSE → 현재 Node 확인 → A* 재실행 → 새로운 우회경로
+    </div>
   </section>
 
 </main>

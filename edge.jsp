@@ -1,36 +1,26 @@
-<%@ page contentType="text/html; charset=UTF-8" import="java.sql.*" %>
-<%!
-    public Connection getConnection() throws Exception {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        String url = "jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
-        return DriverManager.getConnection(url, "root", "1234");
-    }
-
-    public void close(AutoCloseable... objs) {
-        for (AutoCloseable obj : objs) {
-            if (obj != null) {
-                try { obj.close(); } catch(Exception e) {}
-            }
-        }
-    }
-%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ include file="db.jsp" %>
 <%
 request.setCharacterEncoding("UTF-8");String msg="",err="";
 if("POST".equalsIgnoreCase(request.getMethod())){
  Connection c=null;PreparedStatement ps=null;
  try{
-  c=getConnection();
-  ps=c.prepareStatement("REPLACE INTO transport_requests(request_id,resource_id,start_location_id,destination_location_id,vehicle_id,quantity,priority,scheduled_time,deadline,status) VALUES(?,?,?,?,?,?,?,?,?,'REQUESTED')");
-  ps.setString(1,request.getParameter("requestId"));
-  ps.setString(2,request.getParameter("resourceId"));
-  ps.setString(3,request.getParameter("startLocationId"));
-  ps.setString(4,request.getParameter("destinationLocationId"));
-  ps.setString(5,request.getParameter("vehicleId"));
-  ps.setInt(6,Integer.parseInt(request.getParameter("quantity")));
-  ps.setString(7,request.getParameter("priority"));
-  String stime=request.getParameter("scheduledTime"); if(stime==null||stime.isBlank())ps.setNull(8,Types.TIMESTAMP);else ps.setTimestamp(8,Timestamp.valueOf(stime.replace("T"," ")+":00"));
-  String deadline=request.getParameter("deadline"); if(deadline==null||deadline.isBlank())ps.setNull(9,Types.TIMESTAMP);else ps.setTimestamp(9,Timestamp.valueOf(deadline.replace("T"," ")+":00"));
-  ps.executeUpdate();msg="운송요청이 저장되었습니다.";
+  c=getConnection();ps=c.prepareStatement("REPLACE INTO route_edges VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+  ps.setString(1,request.getParameter("edgeId"));
+  ps.setString(2,request.getParameter("fromNode"));
+  ps.setString(3,request.getParameter("toNode"));
+  ps.setDouble(4,Double.parseDouble(request.getParameter("distanceM")));
+  ps.setDouble(5,Double.parseDouble(request.getParameter("widthM")));
+  ps.setDouble(6,Double.parseDouble(request.getParameter("slopeDeg")));
+  ps.setDouble(7,Double.parseDouble(request.getParameter("maxWeightKg")));
+  ps.setDouble(8,Double.parseDouble(request.getParameter("speedLimitKmh")));
+  ps.setBoolean(9,"1".equals(request.getParameter("indoor")));
+  ps.setBoolean(10,"1".equals(request.getParameter("stairs")));
+  ps.setBoolean(11,"1".equals(request.getParameter("accessible")));
+  ps.setDouble(12,Double.parseDouble(request.getParameter("congestion")));
+  ps.setDouble(13,Double.parseDouble(request.getParameter("riskLevel")));
+  ps.setDouble(14,Double.parseDouble(request.getParameter("travelTimeMin")));
+  ps.executeUpdate();msg="Edge가 저장되었습니다.";
  }catch(Exception e){err=e.toString();}finally{close(ps,c);}
 }
 %>
@@ -39,7 +29,7 @@ if("POST".equalsIgnoreCase(request.getMethod())){
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>운송 요청</title>
+<title>Edge 관리</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -131,6 +121,15 @@ a { text-decoration: none; color: inherit; }
   gap: 8px;
 }
 
+.borderless-card {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: 2.25rem;
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 2rem;
+  border: 1px solid #f1f5f9;
+}
+
 .form-section {
   background: var(--surface);
   border-radius: var(--radius-lg);
@@ -163,7 +162,7 @@ a { text-decoration: none; color: inherit; }
 .form-group select {
   padding: 0.75rem 1rem;
   border: 1.5px solid #cbd5e1;
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
   font-family: var(--font-main);
   font-size: 0.95rem;
   transition: all 0.2s;
@@ -180,7 +179,6 @@ a { text-decoration: none; color: inherit; }
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
-  flex-wrap: wrap;
 }
 
 .btn-primary {
@@ -197,21 +195,6 @@ a { text-decoration: none; color: inherit; }
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-}
-
-.btn-secondary {
-  background: #626d79;
-  color: #ffffff;
-  padding: 0.75rem 2rem;
-  border: none;
-  border-radius: var(--radius-pill);
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background: #525a66;
 }
 
 .msg {
@@ -232,6 +215,27 @@ a { text-decoration: none; color: inherit; }
   border-radius: var(--radius-lg);
 }
 
+.table-air {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.925rem;
+}
+
+.table-air th {
+  color: var(--txt-muted);
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 2px solid #e2e8f0;
+  text-align: left;
+}
+
+.table-air td {
+  padding: 18px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--txt-main);
+  vertical-align: middle;
+}
+
 .app-footer {
   background: var(--surface);
   border-top: 1px solid #e2e8f0;
@@ -247,7 +251,7 @@ a { text-decoration: none; color: inherit; }
 <header class="app-header">
   <div class="container-fluid px-4 px-md-5">
     <nav class="navbar navbar-expand-lg py-2.5 px-0">
-      <a class="brand-logo" href="/CAN/dashboard.jsp">
+      <a class="brand-logo" href="dashboard.jsp">
         <i class="bi bi-truck-front text-info fs-3"></i>
         <span>운송 <strong>관리</strong></span>
         <span class="brand-badge">ADMIN</span>
@@ -257,11 +261,10 @@ a { text-decoration: none; color: inherit; }
       </button>
       <div class="collapse navbar-collapse" id="appNavbar">
         <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 mt-3 mt-lg-0">
-          <li class="nav-item"><a class="nav-link-btn" href="transportRequest.jsp"><i class="bi bi-arrow-repeat"></i> 요청</a></li>
-          <li class="nav-item"><a class="nav-link-btn" href="transportStatus.jsp"><i class="bi bi-play-circle"></i> 현황</a></li>
-          <li class="nav-item"><a class="nav-link-btn" href="transportHistory.jsp"><i class="bi bi-clock-history"></i> 이력</a></li>
-          <li class="nav-item ms-lg-3"><a class="nav-link-btn btn btn-sm btn-info text-white fw-bold" style="border-radius: 999px; padding: 0.5rem 1rem;" href="/CAN/main_admin.jsp"><i class="bi bi-gear"></i> 관리 페이지</a></li>
-          <li class="nav-item"><a class="nav-link-btn" href="/CAN/main_student.jsp"><i class="bi bi-house"></i> 메인</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="node.jsp"><i class="bi bi-diagram-2"></i> Node</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="edge.jsp"><i class="bi bi-diagram-3"></i> Edge</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="obstacle.jsp"><i class="bi bi-exclamation-triangle"></i> 장애물</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="dashboard.jsp"><i class="bi bi-speedometer2"></i> 대시</a></li>
         </ul>
       </div>
     </nav>
@@ -272,89 +275,139 @@ a { text-decoration: none; color: inherit; }
 
   <section class="mt-4">
     <div class="section-title">
-      <i class="bi bi-arrow-repeat text-info"></i> 운송 요청 등록
+      <i class="bi bi-diagram-3 text-info"></i> 경로 Edge 관리
     </div>
   </section>
 
   <section class="form-section">
-    <h2 class="h5 mb-4">⑥ 운송 요청 생성</h2>
+    <h2 class="h5 mb-4">⑤ Edge/통행로 등록</h2>
     <%if(!msg.equals("")){%><div class="msg">✓ <%=msg%></div><%}%>
     <%if(!err.equals("")){%><div class="err">✗ <%=err%></div><%}%>
 
     <form method="post">
       <div class="form-row">
         <div class="form-group">
-          <label>운송요청 ID</label>
-          <input name="requestId" value="REQ-2026-0001" required>
+          <label>EDGE_ID</label>
+          <input name="edgeId" value="E001" required>
         </div>
         <div class="form-group">
-          <label>운반 자원</label>
-          <select name="resourceId" required>
-            <%
-            Connection c1=null;Statement s1=null;ResultSet r1=null;
-            try{c1=getConnection();s1=c1.createStatement();r1=s1.executeQuery("SELECT resource_id,resource_name FROM resources ORDER BY resource_id");
-            while(r1.next()){%><option value="<%=r1.getString(1)%>"><%=r1.getString(1)%> - <%=r1.getString(2)%></option><%}}catch(Exception e){}finally{close(r1,s1,c1);}%>
-          </select>
+          <label>FROM_NODE</label>
+          <input name="fromNode" required>
         </div>
         <div class="form-group">
-          <label>출발지</label>
-          <select name="startLocationId" required>
-            <%
-            try{c1=getConnection();s1=c1.createStatement();r1=s1.executeQuery("SELECT location_id,location_name FROM locations ORDER BY location_id");
-            while(r1.next()){%><option value="<%=r1.getString(1)%>"><%=r1.getString(1)%> - <%=r1.getString(2)%></option><%}}catch(Exception e){}finally{close(r1,s1,c1);}%>
-          </select>
+          <label>TO_NODE</label>
+          <input name="toNode" required>
         </div>
         <div class="form-group">
-          <label>목표지</label>
-          <select name="destinationLocationId" required>
-            <%
-            try{c1=getConnection();s1=c1.createStatement();r1=s1.executeQuery("SELECT location_id,location_name FROM locations ORDER BY location_id");
-            while(r1.next()){%><option value="<%=r1.getString(1)%>"><%=r1.getString(1)%> - <%=r1.getString(2)%></option><%}}catch(Exception e){}finally{close(r1,s1,c1);}%>
-          </select>
+          <label>DISTANCE(m)</label>
+          <input name="distanceM" type="number" step="0.1" required>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>운송체</label>
-          <select name="vehicleId" required>
-            <%
-            try{c1=getConnection();s1=c1.createStatement();r1=s1.executeQuery("SELECT vehicle_id,status,battery_soc FROM vehicles ORDER BY vehicle_id");
-            while(r1.next()){%><option value="<%=r1.getString(1)%>"><%=r1.getString(1)%> / <%=r1.getString(2)%> / <%=r1.getDouble(3)%>%</option><%}}catch(Exception e){}finally{close(r1,s1,c1);}%>
-          </select>
+          <label>WIDTH(m)</label>
+          <input name="widthM" type="number" step="0.1" required>
         </div>
         <div class="form-group">
-          <label>수량</label>
-          <input name="quantity" type="number" value="1" min="1" required>
+          <label>SLOPE(°)</label>
+          <input name="slopeDeg" type="number" step="0.1" value="0">
         </div>
         <div class="form-group">
-          <label>우선순위</label>
-          <select name="priority" required>
-            <option>긴급</option>
-            <option>높음</option>
-            <option selected>보통</option>
-            <option>낮음</option>
-          </select>
+          <label>MAX_WEIGHT(kg)</label>
+          <input name="maxWeightKg" type="number" required>
+        </div>
+        <div class="form-group">
+          <label>SPEED_LIMIT(km/h)</label>
+          <input name="speedLimitKmh" type="number" step="0.1" required>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>운송 예정시간</label>
-          <input name="scheduledTime" type="datetime-local">
+          <label>INDOOR</label>
+          <select name="indoor">
+            <option value="1">실내</option>
+            <option value="0">실외</option>
+          </select>
         </div>
         <div class="form-group">
-          <label>도착 제한시간</label>
-          <input name="deadline" type="datetime-local">
+          <label>STAIRS</label>
+          <select name="stairs">
+            <option value="0">없음</option>
+            <option value="1">있음</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ACCESSIBLE</label>
+          <select name="accessible">
+            <option value="1">가능</option>
+            <option value="0">불가</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>CONGESTION</label>
+          <input name="congestion" type="number" min="0" max="100" value="0">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>RISK_LEVEL</label>
+          <input name="riskLevel" type="number" min="0" max="100" value="0">
+        </div>
+        <div class="form-group">
+          <label>TRAVEL_TIME(min)</label>
+          <input name="travelTimeMin" type="number" step="0.1" required>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn-primary">운송요청 저장</button>
-        <a href="routeSearch.jsp" class="btn btn-secondary">A* 경로탐색</a>
+        <button type="submit" class="btn-primary">Edge 저장/수정</button>
         <a href="dashboard.jsp" class="btn btn-outline-secondary" style="border-radius: var(--radius-pill); padding: 0.75rem 2rem;">대시보드</a>
       </div>
     </form>
+  </section>
+
+  <section class="borderless-card">
+    <h2 class="h5 mb-4">Edge 목록</h2>
+    <div class="table-responsive">
+      <table class="table-air">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>From</th>
+            <th>To</th>
+            <th>거리</th>
+            <th>폭</th>
+            <th>경사</th>
+            <th>중량</th>
+            <th>혼잡</th>
+            <th>위험</th>
+            <th>통행</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%
+          Connection c2=null;Statement s2=null;ResultSet r2=null;
+          try{c2=getConnection();s2=c2.createStatement();r2=s2.executeQuery("SELECT * FROM route_edges ORDER BY edge_id");
+          while(r2.next()){%>
+          <tr>
+            <td><strong><%=r2.getString("edge_id")%></strong></td>
+            <td><%=r2.getString("from_node")%></td>
+            <td><%=r2.getString("to_node")%></td>
+            <td><%=r2.getDouble("distance_m")%>m</td>
+            <td><%=r2.getDouble("width_m")%>m</td>
+            <td><%=r2.getDouble("slope_deg")%>°</td>
+            <td><%=r2.getDouble("max_weight_kg")%>kg</td>
+            <td><%=r2.getDouble("congestion")%></td>
+            <td><%=r2.getDouble("risk_level")%></td>
+            <td><%=r2.getBoolean("is_accessible")?"가능":"불가"%></td>
+          </tr>
+          <%}}catch(Exception e){}finally{close(r2,s2,c2);}%>
+        </tbody>
+      </table>
+    </div>
   </section>
 
 </main>

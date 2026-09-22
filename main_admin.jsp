@@ -320,7 +320,7 @@ a { text-decoration: none; color: inherit; }
             <a class="nav-link-btn" href="/CAN/asset_manage.jsp"><i class="bi bi-pencil-square"></i> 자원관리</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link-btn" href="/CAN/dashboard.jsp"><i class="bi bi-box-seam"></i> 자원 운송</a>
+            <a class="nav-link-btn btn btn-sm btn-info text-white fw-bold" style="border-radius: var(--radius-pill); padding: 0.5rem 1rem;" href="/CAN/dashboard.jsp"><i class="bi bi-truck-front"></i> 자원 운송</a>
           </li>
 
           <li class="nav-item ms-lg-3 my-2 my-lg-0">

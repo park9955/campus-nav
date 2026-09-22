@@ -1,5 +1,19 @@
-<%@ page contentType="text/html; charset=UTF-8" %>
-<%@ include file="db.jsp" %>
+<%@ page contentType="text/html; charset=UTF-8" import="java.sql.*" %>
+<%!
+    public Connection getConnection() throws Exception {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        String url = "jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
+        return DriverManager.getConnection(url, "root", "1234");
+    }
+
+    public void close(AutoCloseable... objs) {
+        for (AutoCloseable obj : objs) {
+            if (obj != null) {
+                try { obj.close(); } catch(Exception e) {}
+            }
+        }
+    }
+%>
 <%
 request.setCharacterEncoding("UTF-8");
 String msg="",err="";
@@ -272,6 +286,7 @@ a { text-decoration: none; color: inherit; }
           <li class="nav-item"><a class="nav-link-btn" href="vehicle.jsp"><i class="bi bi-truck"></i> 운송체</a></li>
           <li class="nav-item"><a class="nav-link-btn" href="transportRequest.jsp"><i class="bi bi-arrow-repeat"></i> 요청</a></li>
           <li class="nav-item"><a class="nav-link-btn" href="dashboard.jsp"><i class="bi bi-speedometer2"></i> 대시</a></li>
+          <li class="nav-item ms-lg-3"><a class="nav-link-btn btn btn-sm btn-info text-white fw-bold" style="border-radius: 999px; padding: 0.5rem 1rem;" href="/CAN/main_admin.jsp"><i class="bi bi-gear"></i> 관리 페이지</a></li>
         </ul>
       </div>
     </nav>

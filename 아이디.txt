@@ -1,0 +1,6 @@
+ 역할  │     ID     │ 비밀번호 │   이름   │       이메일       │
+│ 관리자 │ admin      │ 1234     │ 박관리자 │ admin@ict.ac.kr    │
+│ 조교   │ assist1    │ asst1234 │ 김조교   │ assist1@ict.ac.kr  │
+│ 교수   │ prof1      │ prof1234 │ 이교수   │ prof1@ict.ac.kr    │
+│ 학생   │ student1   │ pass1234 │ 홍길동   │ student1@ict.ac.kr │
+│ 학생   │ dnjsxo7231 │ dus88600 │ 원태연   │ 190320@ict.ac.kr   │

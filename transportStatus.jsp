@@ -1,5 +1,19 @@
-<%@ page contentType="text/html; charset=UTF-8" %>
-<%@ include file="db.jsp" %>
+<%@ page contentType="text/html; charset=UTF-8" import="java.sql.*" %>
+<%!
+    public Connection getConnection() throws Exception {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        String url = "jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
+        return DriverManager.getConnection(url, "root", "1234");
+    }
+
+    public void close(AutoCloseable... objs) {
+        for (AutoCloseable obj : objs) {
+            if (obj != null) {
+                try { obj.close(); } catch(Exception e) {}
+            }
+        }
+    }
+%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -186,7 +200,8 @@ a { text-decoration: none; color: inherit; }
           <li class="nav-item"><a class="nav-link-btn" href="transportRequest.jsp"><i class="bi bi-arrow-repeat"></i> 요청</a></li>
           <li class="nav-item"><a class="nav-link-btn" href="transportStatus.jsp"><i class="bi bi-play-circle"></i> 현황</a></li>
           <li class="nav-item"><a class="nav-link-btn" href="transportHistory.jsp"><i class="bi bi-clock-history"></i> 이력</a></li>
-          <li class="nav-item ms-lg-3"><a class="nav-link-btn" href="/CAN/main_student.jsp"><i class="bi bi-house"></i> 메인</a></li>
+          <li class="nav-item ms-lg-3"><a class="nav-link-btn btn btn-sm btn-info text-white fw-bold" style="border-radius: 999px; padding: 0.5rem 1rem;" href="/CAN/main_admin.jsp"><i class="bi bi-gear"></i> 관리 페이지</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="/CAN/main_student.jsp"><i class="bi bi-house"></i> 메인</a></li>
         </ul>
       </div>
     </nav>
