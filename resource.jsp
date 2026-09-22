@@ -1,5 +1,19 @@
-<%@ page contentType="text/html; charset=UTF-8" %>
-<%@ include file="db.jsp" %>
+<%@ page contentType="text/html; charset=UTF-8" import="java.sql.*" %>
+<%!
+    public Connection getConnection() throws Exception {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        String url = "jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
+        return DriverManager.getConnection(url, "root", "1234");
+    }
+
+    public void close(AutoCloseable... objs) {
+        for (AutoCloseable obj : objs) {
+            if (obj != null) {
+                try { obj.close(); } catch(Exception e) {}
+            }
+        }
+    }
+%>
 <%
 request.setCharacterEncoding("UTF-8");
 String msg="", err="";
