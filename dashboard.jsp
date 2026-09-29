@@ -1,15 +1,42 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ include file="db.jsp" %>
 <%
+// ---- 접근 권한 체크: 로그인 필요, 외부인(visitor)은 접근 불가 ----
+String loginUser=(String)session.getAttribute("loginUser");
+String loginRole=(String)session.getAttribute("loginRole");
+if(loginUser==null){ response.sendRedirect("/CAN/campuslogin.jsp"); return; }
+if(!("student".equals(loginRole) || "assistant".equals(loginRole) || "professor".equals(loginRole) || "admin".equals(loginRole))){
+    response.sendRedirect("/CAN/campuslogin.jsp"); return;
+}
+boolean isAdmin = "admin".equals(loginRole);
+String roleLabel =
+    "student".equals(loginRole)   ? "학부생" :
+    "assistant".equals(loginRole) ? "조교"   :
+    "professor".equals(loginRole) ? "교수"   : "관리자";
+String roleBadge =
+    "student".equals(loginRole)   ? "STUDENT" :
+    "assistant".equals(loginRole) ? "ASSISTANT" :
+    "professor".equals(loginRole) ? "PROFESSOR" : "ADMIN";
+
 int resourceCount=0, locationCount=0, vehicleCount=0, requestCount=0;
 Connection con=null; Statement st=null; ResultSet rs=null;
+
+// 등록 자원 조회 (실제 DB 연동)
 try {
     con=getConnection(); st=con.createStatement();
-    rs=st.executeQuery("SELECT COUNT(*) FROM resources"); if(rs.next()) resourceCount=rs.getInt(1); rs.close();
-    rs=st.executeQuery("SELECT COUNT(*) FROM locations"); if(rs.next()) locationCount=rs.getInt(1); rs.close();
-    rs=st.executeQuery("SELECT COUNT(*) FROM vehicles"); if(rs.next()) vehicleCount=rs.getInt(1); rs.close();
-    rs=st.executeQuery("SELECT COUNT(*) FROM transport_requests"); if(rs.next()) requestCount=rs.getInt(1); rs.close();
-} catch(Exception e) {} finally { close(rs,st,con); }
+    rs=st.executeQuery("SELECT COUNT(*) FROM resources");
+    if(rs.next()) resourceCount=rs.getInt(1);
+    rs.close();
+} catch(Exception e) {
+    resourceCount=0;
+} finally {
+    close(rs,st,con);
+}
+
+// 아직 연동되지 않은 DB는 0으로 표시
+locationCount=0;
+vehicleCount=0;
+requestCount=0;
 %>
 <!DOCTYPE html>
 <html lang="ko">
@@ -53,11 +80,8 @@ try {
   --font-mono: 'JetBrains Mono', monospace;
   --header-bg: rgba(255, 255, 255, 0.85);
   --border-color: rgba(226, 232, 240, 0.8);
-
-  --flow-box-bg: #f8fafc;
-  --flow-border: #e2e8f0;
-  --flow-item-bg: #ffffff;
-  --flow-item-txt: #0f172a;
+  
+  --stat-label-color: #334155;
 }
 
 [data-theme="dark"] {
@@ -73,10 +97,7 @@ try {
   --header-bg: rgba(30, 41, 59, 0.95);
   --border-color: rgba(71, 85, 105, 0.6);
 
-  --flow-box-bg: #0f172a;
-  --flow-border: #334155;
-  --flow-item-bg: #1e293b;
-  --flow-item-txt: #f8fafc;
+  --stat-label-color: #f8fafc;
 }
 
 body {
@@ -149,59 +170,9 @@ a { text-decoration: none; color: inherit; }
   color: var(--sky-primary);
 }
 
-[data-theme="dark"] .brand-logo {
-  color: #f1f5f9;
-}
-
-[data-theme="dark"] .nav-link-btn {
-  color: #e2e8f0;
-  font-weight: 700;
-}
-
-[data-theme="dark"] .nav-link-btn:hover {
-  background: var(--sky-bg);
-  color: #38bdf8;
-}
-
-[data-theme="dark"] .stat-pill-label {
-  color: #cbd5e1;
-  font-weight: 700;
-}
-
-[data-theme="dark"] .stat-pill-num {
-  color: #e2e8f0;
-  font-weight: 800;
-}
-
-[data-theme="dark"] .stat-item-blue {
-  background: #1e3a5f;
-  border-color: #0c4a6e;
-}
-
-[data-theme="dark"] .stat-item-blue .stat-pill-icon {
-  background: #0c2d42;
-  color: #38bdf8;
-}
-
-[data-theme="dark"] .stat-item-green {
-  background: #1a3a2a;
-  border-color: #1e5a48;
-}
-
-[data-theme="dark"] .stat-item-green .stat-pill-icon {
-  background: #0d2d24;
-  color: #4ade80;
-}
-
-[data-theme="dark"] .stat-item-amber {
-  background: #3a3a1f;
-  border-color: #56540a;
-}
-
-[data-theme="dark"] .stat-item-amber .stat-pill-icon {
-  background: #2a2a08;
-  color: #fbbf24;
-}
+[data-theme="dark"] .brand-logo { color: #f1f5f9; }
+[data-theme="dark"] .nav-link-btn { color: #e2e8f0; font-weight: 700; }
+[data-theme="dark"] .nav-link-btn:hover { background: var(--sky-bg); color: #38bdf8; }
 
 .theme-toggle {
   background: none;
@@ -221,14 +192,8 @@ a { text-decoration: none; color: inherit; }
   color: var(--sky-primary);
 }
 
-[data-theme="dark"] .theme-toggle {
-  color: #cbd5e1;
-}
-
-[data-theme="dark"] .theme-toggle:hover {
-  background: var(--sky-bg);
-  color: #38bdf8;
-}
+[data-theme="dark"] .theme-toggle { color: #cbd5e1; }
+[data-theme="dark"] .theme-toggle:hover { background: var(--sky-bg); color: #38bdf8; }
 
 .user-tag-pill {
   background: var(--surface);
@@ -282,9 +247,7 @@ a { text-decoration: none; color: inherit; }
   color: var(--txt-main);
 }
 
-.hero-title-main span {
-  color: var(--sky-primary);
-}
+.hero-title-main span { color: var(--sky-primary); }
 
 .hero-subtitle-text {
   font-size: 0.95rem;
@@ -305,75 +268,72 @@ a { text-decoration: none; color: inherit; }
 }
 
 .stat-item-pill {
-  padding: 12px 20px;
+  padding: 14px 20px;
   border-radius: var(--radius-pill);
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.stat-item-blue {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
+.stat-item-blue { background: #f0f9ff; border: 1px solid #bae6fd; }
+.stat-item-green { background: #f0fdf4; border: 1px solid #bbf7d0; }
+.stat-item-amber { background: #fffbeb; border: 1px solid #fde68a; }
+
+.stat-item-blue .stat-pill-icon { background: #ffffff; color: #0284c7; }
+.stat-item-green .stat-pill-icon { background: #ffffff; color: #16a34a; }
+.stat-item-amber .stat-pill-icon { background: #ffffff; color: #d97706; }
+
+[data-theme="dark"] .stat-item-blue {
+  background: #152942;
+  border: 1px solid #1d4ed8;
 }
-.stat-item-blue:hover {
-  background: #e0f2fe;
-  transform: translateX(4px);
-}
-.stat-item-blue .stat-pill-icon {
-  background: #ffffff;
-  color: var(--sky-primary);
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
+[data-theme="dark"] .stat-item-blue .stat-pill-icon {
+  background: #0f1e33;
+  color: #38bdf8;
+  border: 1px solid #1e40af;
 }
 
-.stat-item-green {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+[data-theme="dark"] .stat-item-green {
+  background: #113322;
+  border: 1px solid #15803d;
 }
-.stat-item-green:hover {
-  background: #dcfce7;
-  transform: translateX(4px);
-}
-.stat-item-green .stat-pill-icon {
-  background: #ffffff;
-  color: var(--emerald-main);
-  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.15);
+[data-theme="dark"] .stat-item-green .stat-pill-icon {
+  background: #0a2417;
+  color: #4ade80;
+  border: 1px solid #166534;
 }
 
-.stat-item-amber {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
+[data-theme="dark"] .stat-item-amber {
+  background: #362f13;
+  border: 1px solid #a16207;
 }
-.stat-item-amber:hover {
-  background: #fef3c7;
-  transform: translateX(4px);
-}
-.stat-item-amber .stat-pill-icon {
-  background: #ffffff;
-  color: var(--amber-main);
-  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
+[data-theme="dark"] .stat-item-amber .stat-pill-icon {
+  background: #241e0a;
+  color: #fbbf24;
+  border: 1px solid #854d0e;
 }
 
 .stat-pill-icon {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .stat-pill-label {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--txt-sub);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--stat-label-color);
 }
 
 .stat-pill-num {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 800;
   font-family: var(--font-mono);
 }
@@ -387,55 +347,81 @@ a { text-decoration: none; color: inherit; }
   border: 1px solid var(--border-color);
 }
 
-/* 직사각형 스타일 스텝 프로세스 네비게이션 */
-.flow-nav-container {
-  background: var(--surface);
-  border-radius: 0; /* 컨테이너 직사각형화 */
-  padding: 1.25rem 1.75rem;
-  box-shadow: var(--shadow-soft);
-  margin-top: 1.5rem;
-  border: 1px solid var(--border-color);
-}
-
-.flow-nav-wrapper {
+/* ---- ICON FLOW DIAGRAM ---- */
+.flow-legend {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scroll-behavior: smooth;
-}
-
-.flow-nav-wrapper::-webkit-scrollbar {
-  height: 6px;
-}
-.flow-nav-wrapper::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 0;
-}
-
-.flow-step-item {
-  display: flex;
-  align-items: center;
-  background: var(--flow-box-bg);
-  border: 1px solid var(--flow-border);
-  color: var(--flow-item-txt);
-  padding: 6px 14px;
-  border-radius: 0; /* 라운드 제거 -> 직사각형 구조 */
-  font-size: 0.825rem;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.flow-step-item:hover {
-  border-color: var(--sky-primary);
-  color: var(--sky-primary);
-}
-
-.flow-step-arrow {
   color: var(--txt-muted);
-  font-size: 0.85rem;
+}
+.flow-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.flow-legend i { font-size: 0.6rem; }
+
+.flow-track {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 104px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.flow-icon-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid transparent;
+}
+
+.flow-icon-sky     { background: var(--sky-bg);       color: var(--sky-primary);  border-color: #bae6fd; }
+.flow-icon-emerald { background: #f0fdf4;         color: var(--emerald-main); border-color: #bbf7d0; }
+.flow-icon-amber   { background: #fffbeb;         color: var(--amber-main);   border-color: #fde68a; }
+
+[data-theme="dark"] .flow-icon-sky { background: #1e3a5f; color: #38bdf8; border-color: #0c4a6e; }
+[data-theme="dark"] .flow-icon-emerald { background: #1a3a2a; color: #4ade80; border-color: #1e5a48; }
+[data-theme="dark"] .flow-icon-amber { background: #3a3a1f; color: #fbbf24; border-color: #56540a; }
+
+.flow-step-num {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--txt-muted);
+  margin-bottom: 2px;
+}
+
+.flow-step-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--txt-sub);
+  line-height: 1.3;
+}
+
+.flow-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt-muted);
+  font-size: 1.05rem;
+  width: 26px;
+  height: 54px;
   flex-shrink: 0;
 }
 
@@ -472,11 +458,7 @@ a { text-decoration: none; color: inherit; }
 .chip-ok { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
 .chip-pending { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
 
-[data-theme="dark"] .chip-ok {
-  background: #064e3b;
-  color: #6ee7b7;
-  border-color: #047857;
-}
+[data-theme="dark"] .chip-ok { background: #064e3b; color: #6ee7b7; border-color: #047857; }
 
 .app-footer {
   background: var(--surface);
@@ -497,7 +479,7 @@ a { text-decoration: none; color: inherit; }
       <a class="brand-logo" href="/CAN/dashboard.jsp">
         <i class="bi bi-truck-front text-info fs-3"></i>
         <span>운송 <strong>관리</strong></span>
-        <span class="brand-badge">ADMIN</span>
+        <span class="brand-badge"><%=roleBadge%></span>
       </a>
 
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#appNavbar">
@@ -506,29 +488,19 @@ a { text-decoration: none; color: inherit; }
 
       <div class="collapse navbar-collapse" id="appNavbar">
         <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 mt-3 mt-lg-0">
-          <li class="nav-item">
-            <a class="nav-link-btn" href="transportRequest.jsp"><i class="bi bi-arrow-repeat"></i> 요청</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link-btn" href="transportStatus.jsp"><i class="bi bi-play-circle"></i> 현황</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link-btn" href="transportHistory.jsp"><i class="bi bi-clock-history"></i> 이력</a>
-          </li>
-          <li class="nav-item ms-lg-3">
-            <a class="nav-link-btn" href="resource.jsp"><i class="bi bi-boxes"></i> 자원 관리</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link-btn" href="location.jsp"><i class="bi bi-geo-alt"></i> 위치 관리</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link-btn" href="vehicle.jsp"><i class="bi bi-truck"></i> 운송체 관리</a>
-          </li>
+          <li class="nav-item"><a class="nav-link-btn" href="transportRequest.jsp"><i class="bi bi-arrow-repeat"></i> 요청</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="transportStatus.jsp"><i class="bi bi-play-circle"></i> 현황</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="transportHistory.jsp"><i class="bi bi-clock-history"></i> 이력</a></li>
+          <% if(isAdmin){ %>
+          <li class="nav-item ms-lg-3"><a class="nav-link-btn" href="resource.jsp"><i class="bi bi-boxes"></i> 자원 관리</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="location.jsp"><i class="bi bi-geo-alt"></i> 위치 관리</a></li>
+          <li class="nav-item"><a class="nav-link-btn" href="vehicle.jsp"><i class="bi bi-truck"></i> 운송체 관리</a></li>
+          <% } %>
 
           <li class="nav-item ms-lg-3 my-2 my-lg-0">
             <div class="user-tag-pill">
               <i class="bi bi-person-circle text-info fs-6"></i>
-              <span>관리자</span>
+              <span><%=roleLabel%></span>
             </div>
           </li>
 
@@ -553,35 +525,103 @@ a { text-decoration: none; color: inherit; }
 
 <main class="container-xl pb-5">
 
-  <!-- 1. 최상단 배치: 전체 처리 흐름 (직사각형 네비게이션 바 형태) -->
-  <section class="flow-nav-container">
-    <div class="d-flex align-items-center mb-2">
-      <span class="fw-bold fs-6 text-info me-2"><i class="bi bi-diagram-3"></i> 전체 처리 흐름</span>
+  <!-- 1. SYSTEM FLOW SECTION -->
+  <section class="borderless-card" style="margin-top: 2rem;">
+    <h2 class="fw-bold fs-5 m-0 mb-3"><i class="bi bi-diagram-3 text-info me-2"></i>전체 처리 흐름</h2>
+
+    <div class="flow-legend">
+      <span><i class="bi bi-circle-fill" style="color:var(--sky-primary);"></i> 계획 단계</span>
+      <span><i class="bi bi-circle-fill" style="color:var(--emerald-main);"></i> 운송 시작·완료</span>
+      <span><i class="bi bi-circle-fill" style="color:var(--amber-main);"></i> 장애물 대응·재탐색</span>
     </div>
-    <div class="flow-nav-wrapper">
-      <div class="flow-step-item">자원 선택</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item">출발지 선택</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item">목표지 선택</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item">운송체 선택</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item">이동불가 Edge 제거</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item">A* 최적경로 탐색</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item">운송 시작</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item">장애물 감지</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item">Edge 차단</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item">현재 위치 기준 A* 재탐색</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item">우회경로</div>
-      <i class="bi bi-chevron-right flow-step-arrow"></i>
-      <div class="flow-step-item fw-bold text-success">운송완료</div>
+
+    <div style="background: var(--bg-app); padding: 1.75rem 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); overflow-x: auto;">
+      <div class="flow-track">
+
+        <div class="flow-step">
+          <div class="flow-step-num">01</div>
+          <div class="flow-icon-circle flow-icon-sky"><i class="bi bi-box-seam"></i></div>
+          <div class="flow-step-label">자원 선택</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">02</div>
+          <div class="flow-icon-circle flow-icon-sky"><i class="bi bi-geo-alt"></i></div>
+          <div class="flow-step-label">출발지 선택</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">03</div>
+          <div class="flow-icon-circle flow-icon-sky"><i class="bi bi-flag-fill"></i></div>
+          <div class="flow-step-label">목표지 선택</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">04</div>
+          <div class="flow-icon-circle flow-icon-sky"><i class="bi bi-truck"></i></div>
+          <div class="flow-step-label">운송체 선택</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">05</div>
+          <div class="flow-icon-circle flow-icon-sky"><i class="bi bi-signpost-split"></i></div>
+          <div class="flow-step-label">이동불가 Edge 제거</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">06</div>
+          <div class="flow-icon-circle flow-icon-sky"><i class="bi bi-diagram-3"></i></div>
+          <div class="flow-step-label">A* 최적경로 탐색</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">07</div>
+          <div class="flow-icon-circle flow-icon-emerald"><i class="bi bi-play-circle-fill"></i></div>
+          <div class="flow-step-label">운송 시작</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">08</div>
+          <div class="flow-icon-circle flow-icon-amber"><i class="bi bi-exclamation-triangle-fill"></i></div>
+          <div class="flow-step-label">장애물 감지</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">09</div>
+          <div class="flow-icon-circle flow-icon-amber"><i class="bi bi-x-octagon-fill"></i></div>
+          <div class="flow-step-label">Edge 차단</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">10</div>
+          <div class="flow-icon-circle flow-icon-amber"><i class="bi bi-arrow-repeat"></i></div>
+          <div class="flow-step-label">현재 위치 기준<br>A* 재탐색</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">11</div>
+          <div class="flow-icon-circle flow-icon-amber"><i class="bi bi-signpost-2-fill"></i></div>
+          <div class="flow-step-label">우회경로</div>
+        </div>
+        <div class="flow-connector"><i class="bi bi-chevron-right"></i></div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">12</div>
+          <div class="flow-icon-circle flow-icon-emerald"><i class="bi bi-check-circle-fill"></i></div>
+          <div class="flow-step-label">운송완료</div>
+        </div>
+
+      </div>
     </div>
   </section>
 
@@ -590,46 +630,37 @@ a { text-decoration: none; color: inherit; }
     <div class="row g-4 align-items-stretch">
       <div class="col-lg-7 text-start">
         <div class="welcome-profile-card">
-          <div class="hero-welcome-badge">
-            <i class="bi bi-speedometer2"></i> 시스템 운영 대시보드
-          </div>
+          <div class="hero-welcome-badge"><i class="bi bi-speedometer2"></i> 시스템 운영 대시보드</div>
           <h1 class="hero-title-main">운송 관리 <span>시스템</span> 👋</h1>
           <p class="hero-subtitle-text">전체 시스템의 상태를 한눈에 파악하고 운송 요청을 관리하세요.</p>
         </div>
       </div>
 
-      <!-- Right Side Stats Card Area -->
       <div class="col-lg-5">
         <div class="hero-side-stats">
           <div class="stat-item-pill stat-item-blue">
-            <div class="stat-pill-icon">
-              <i class="bi bi-boxes"></i>
-            </div>
+            <div class="stat-pill-icon"><i class="bi bi-boxes"></i></div>
             <div class="text-start flex-grow-1">
               <div class="stat-pill-label">등록 자원</div>
-              <div class="stat-pill-num" style="color: var(--sky-primary);"><%=resourceCount%></div>
+              <div class="stat-pill-num" style="color: #38bdf8;"><%=resourceCount%>건</div>
             </div>
             <i class="bi bi-chevron-right text-muted small"></i>
           </div>
 
           <div class="stat-item-pill stat-item-green">
-            <div class="stat-pill-icon">
-              <i class="bi bi-geo-alt"></i>
-            </div>
+            <div class="stat-pill-icon"><i class="bi bi-geo-alt"></i></div>
             <div class="text-start flex-grow-1">
               <div class="stat-pill-label">등록 위치</div>
-              <div class="stat-pill-num" style="color: var(--emerald-main);"><%=locationCount%></div>
+              <div class="stat-pill-num" style="color: #4ade80;"><%=locationCount%>건</div>
             </div>
             <i class="bi bi-chevron-right text-muted small"></i>
           </div>
 
           <div class="stat-item-pill stat-item-amber">
-            <div class="stat-pill-icon">
-              <i class="bi bi-truck"></i>
-            </div>
+            <div class="stat-pill-icon"><i class="bi bi-truck"></i></div>
             <div class="text-start flex-grow-1">
               <div class="stat-pill-label">운송 수단</div>
-              <div class="stat-pill-num" style="color: var(--amber-main);"><%=vehicleCount%></div>
+              <div class="stat-pill-num" style="color: #fbbf24;"><%=vehicleCount%>건</div>
             </div>
             <i class="bi bi-chevron-right text-muted small"></i>
           </div>
@@ -641,12 +672,8 @@ a { text-decoration: none; color: inherit; }
   <!-- 3. RECENT REQUESTS BOARD -->
   <section class="borderless-card">
     <div class="d-flex align-items-center justify-content-between mb-4">
-      <h2 class="fw-bold fs-5 m-0">
-        <i class="bi bi-clock-history text-info me-2"></i>최근 운송 요청 (<%=requestCount%>건)
-      </h2>
-      <a href="transportRequest.jsp" class="btn btn-sm btn-outline-info fw-bold" style="border-radius: var(--radius-pill);">
-        + 새 요청 등록
-      </a>
+      <h2 class="fw-bold fs-5 m-0"><i class="bi bi-clock-history text-info me-2"></i>최근 운송 요청 (<%=requestCount%>건)</h2>
+      <a href="transportRequest.jsp" class="btn btn-sm btn-outline-info fw-bold" style="border-radius: var(--radius-pill);">+ 새 요청 등록</a>
     </div>
 
     <div class="table-responsive">
@@ -680,14 +707,11 @@ a { text-decoration: none; color: inherit; }
 
 </main>
 
-<!-- FOOTER -->
 <footer class="app-footer">
   <div class="container-xl">
     <div class="row gy-3 align-items-center">
       <div class="col-md-6 text-center text-md-start">
-        <div class="fw-bold mb-1">
-          <i class="bi bi-truck-front me-1 text-info"></i> 운송 관리 시스템
-        </div>
+        <div class="fw-bold mb-1"><i class="bi bi-truck-front me-1 text-info"></i> 운송 관리 시스템</div>
         <div class="text-muted">지능형 운송 관리 및 경로 최적화 시스템</div>
       </div>
       <div class="col-md-6 text-center text-md-end small">
