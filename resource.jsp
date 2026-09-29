@@ -1,46 +1,33 @@
 <%@ page contentType="text/html; charset=UTF-8" import="java.sql.*" %>
-<%!
-    public Connection getConnection() throws Exception {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        String url = "jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
-        return DriverManager.getConnection(url, "root", "1234");
-    }
-
-    public void close(AutoCloseable... objs) {
-        for (AutoCloseable obj : objs) {
-            if (obj != null) {
-                try { obj.close(); } catch(Exception e) {}
-            }
-        }
-    }
-%>
 <%
 request.setCharacterEncoding("UTF-8");
 String msg="", err="";
 if("POST".equalsIgnoreCase(request.getMethod())){
   Connection c=null; PreparedStatement ps=null;
   try{
-    c=getConnection();
-    String sql="REPLACE INTO resources(resource_id,resource_name,category,quantity,weight_kg,width_cm,length_cm,height_cm,fragile,tilt_restricted,temperature_condition,priority,planned_time,deadline) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    Class.forName("com.mysql.cj.jdbc.Driver");
+    c=DriverManager.getConnection("jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true","root","1234");
+    String sql="REPLACE INTO assets(asset_no,asset_class,item_name,model,manage_dept,manager_name,detail_location,asset_status,weight_kg,width_cm,length_cm,height_cm,fragile,can_tilt,temperature_condition,priority,acq_date) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     ps=c.prepareStatement(sql);
-    ps.setString(1,request.getParameter("resourceId"));
-    ps.setString(2,request.getParameter("resourceName"));
-    ps.setString(3,request.getParameter("category"));
-    ps.setInt(4,Integer.parseInt(request.getParameter("quantity")));
-    ps.setDouble(5,Double.parseDouble(request.getParameter("weightKg")));
-    ps.setDouble(6,Double.parseDouble(request.getParameter("widthCm")));
-    ps.setDouble(7,Double.parseDouble(request.getParameter("lengthCm")));
-    ps.setDouble(8,Double.parseDouble(request.getParameter("heightCm")));
-    ps.setBoolean(9,"1".equals(request.getParameter("fragile")));
-    ps.setBoolean(10,"1".equals(request.getParameter("tiltRestricted")));
-    ps.setString(11,request.getParameter("temperatureCondition"));
-    ps.setString(12,request.getParameter("priority"));
-    String p=request.getParameter("plannedTime");
-    String d=request.getParameter("deadline");
-    if(p==null||p.isBlank()) ps.setNull(13,Types.TIMESTAMP); else ps.setTimestamp(13,Timestamp.valueOf(p.replace("T"," ")+":00"));
-    if(d==null||d.isBlank()) ps.setNull(14,Types.TIMESTAMP); else ps.setTimestamp(14,Timestamp.valueOf(d.replace("T"," ")+":00"));
-    ps.executeUpdate(); msg="학교자원이 저장되었습니다.";
-  }catch(Exception e){err=e.toString();}finally{close(ps,c);}
+    ps.setString(1,request.getParameter("assetNo"));
+    ps.setString(2,request.getParameter("assetClass"));
+    ps.setString(3,request.getParameter("itemName"));
+    ps.setString(4,request.getParameter("model"));
+    ps.setString(5,request.getParameter("manageDept"));
+    ps.setString(6,request.getParameter("managerName"));
+    ps.setString(7,request.getParameter("detailLocation"));
+    ps.setString(8,request.getParameter("assetStatus"));
+    String w=request.getParameter("weightKg"); if(w==null||w.isBlank()) ps.setNull(9,Types.DECIMAL); else ps.setDouble(9,Double.parseDouble(w));
+    String wc=request.getParameter("widthCm"); if(wc==null||wc.isBlank()) ps.setNull(10,Types.DECIMAL); else ps.setDouble(10,Double.parseDouble(wc));
+    String lc=request.getParameter("lengthCm"); if(lc==null||lc.isBlank()) ps.setNull(11,Types.DECIMAL); else ps.setDouble(11,Double.parseDouble(lc));
+    String hc=request.getParameter("heightCm"); if(hc==null||hc.isBlank()) ps.setNull(12,Types.DECIMAL); else ps.setDouble(12,Double.parseDouble(hc));
+    ps.setBoolean(13,"1".equals(request.getParameter("fragile")));
+    ps.setBoolean(14,"1".equals(request.getParameter("canTilt")));
+    ps.setString(15,request.getParameter("temperatureCondition"));
+    ps.setString(16,request.getParameter("priority"));
+    String aq=request.getParameter("acqDate"); if(aq==null||aq.isBlank()) ps.setNull(17,Types.DATE); else ps.setDate(17,java.sql.Date.valueOf(aq));
+    ps.executeUpdate(); msg="자산이 저장되었습니다.";
+  }catch(Exception e){err=e.toString();}finally{try{if(ps!=null)ps.close();if(c!=null)c.close();}catch(Exception e){}}
 }
 %>
 <!DOCTYPE html>
@@ -387,51 +374,70 @@ a { text-decoration: none; color: inherit; }
   </section>
 
   <section class="form-section">
-    <h2 class="h5 mb-4">① 학교자원 등록</h2>
+    <h2 class="h5 mb-4">① 자산 등록/수정</h2>
     <%if(!msg.equals("")){%><div class="msg">✓ <%=msg%></div><%}%>
     <%if(!err.equals("")){%><div class="err">✗ <%=err%></div><%}%>
 
     <form method="post">
       <div class="form-row">
         <div class="form-group">
-          <label>Resource ID</label>
-          <input name="resourceId" value="RES-0001" required>
+          <label>자산 번호</label>
+          <input name="assetNo" value="AST-001" required>
         </div>
         <div class="form-group">
-          <label>자원명</label>
-          <input name="resourceName" placeholder="서버" required>
+          <label>자산 분류</label>
+          <input name="assetClass" placeholder="기자재" required>
         </div>
         <div class="form-group">
-          <label>자원분류</label>
-          <select name="category" required>
-            <option>기자재</option>
-            <option>도서</option>
-            <option>실습장비</option>
-            <option>소모품</option>
+          <label>자산명</label>
+          <input name="itemName" placeholder="서버" required>
+        </div>
+        <div class="form-group">
+          <label>모델</label>
+          <input name="model" placeholder="모델명">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>관리 부서</label>
+          <input name="manageDept" placeholder="정보통신과">
+        </div>
+        <div class="form-group">
+          <label>담당자</label>
+          <input name="managerName" placeholder="담당자명">
+        </div>
+        <div class="form-group">
+          <label>상세 위치</label>
+          <input name="detailLocation" placeholder="301호">
+        </div>
+        <div class="form-group">
+          <label>자산 상태</label>
+          <select name="assetStatus">
+            <option>사용중</option>
+            <option>미사용</option>
+            <option>폐기</option>
+            <option>수리중</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label>수량</label>
-          <input name="quantity" type="number" value="1" min="1" required>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label>무게(kg)</label>
-          <input name="weightKg" type="number" step="0.1" required>
+          <input name="weightKg" type="number" step="0.1">
         </div>
         <div class="form-group">
           <label>가로(cm)</label>
-          <input name="widthCm" type="number" step="0.1" required>
+          <input name="widthCm" type="number" step="0.1">
         </div>
         <div class="form-group">
           <label>세로(cm)</label>
-          <input name="lengthCm" type="number" step="0.1" required>
+          <input name="lengthCm" type="number" step="0.1">
         </div>
         <div class="form-group">
           <label>높이(cm)</label>
-          <input name="heightCm" type="number" step="0.1" required>
+          <input name="heightCm" type="number" step="0.1">
         </div>
       </div>
 
@@ -439,20 +445,20 @@ a { text-decoration: none; color: inherit; }
         <div class="form-group">
           <label>파손주의</label>
           <select name="fragile">
-            <option value="1">Y</option>
-            <option value="0">N</option>
+            <option value="1">Yes</option>
+            <option value="0" selected>No</option>
           </select>
         </div>
         <div class="form-group">
-          <label>기울임 제한</label>
-          <select name="tiltRestricted">
-            <option value="1">불가</option>
-            <option value="0">가능</option>
+          <label>기울임 가능</label>
+          <select name="canTilt">
+            <option value="1" selected>Yes</option>
+            <option value="0">No</option>
           </select>
         </div>
         <div class="form-group">
           <label>온도조건</label>
-          <input name="temperatureCondition" value="해당 없음">
+          <input name="temperatureCondition" value="상온">
         </div>
         <div class="form-group">
           <label>우선순위</label>
@@ -467,12 +473,8 @@ a { text-decoration: none; color: inherit; }
 
       <div class="form-row">
         <div class="form-group">
-          <label>운반 예정시간</label>
-          <input name="plannedTime" type="datetime-local">
-        </div>
-        <div class="form-group">
-          <label>도착 제한시간</label>
-          <input name="deadline" type="datetime-local">
+          <label>취득 날짜</label>
+          <input name="acqDate" type="date">
         </div>
       </div>
 
@@ -484,38 +486,42 @@ a { text-decoration: none; color: inherit; }
   </section>
 
   <section class="borderless-card">
-    <h2 class="h5 mb-4">등록 자원 목록</h2>
+    <h2 class="h5 mb-4">등록 자산 목록</h2>
     <div class="table-responsive">
       <table class="table-air">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>자원명</th>
+            <th>자산번호</th>
             <th>분류</th>
-            <th>수량</th>
-            <th>무게</th>
-            <th>크기</th>
-            <th>파손</th>
-            <th>우선순위</th>
+            <th>자산명</th>
+            <th>모델</th>
+            <th>관리부서</th>
+            <th>담당자</th>
+            <th>위치</th>
+            <th>상태</th>
           </tr>
         </thead>
         <tbody>
           <%
           Connection c=null; Statement s=null; ResultSet r=null;
-          try{c=getConnection();s=c.createStatement();r=s.executeQuery("SELECT * FROM resources ORDER BY resource_id");
-          while(r.next()){
+          try{
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            c=DriverManager.getConnection("jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true","root","1234");
+            s=c.createStatement();
+            r=s.executeQuery("SELECT asset_no,asset_class,item_name,model,manage_dept,manager_name,detail_location,asset_status FROM assets ORDER BY asset_no DESC LIMIT 50");
+            while(r.next()){
           %>
           <tr>
-            <td><strong><%=r.getString("resource_id")%></strong></td>
-            <td><%=r.getString("resource_name")%></td>
-            <td><%=r.getString("category")%></td>
-            <td><%=r.getInt("quantity")%></td>
-            <td><%=r.getDouble("weight_kg")%>kg</td>
-            <td><%=r.getDouble("width_cm")%>×<%=r.getDouble("length_cm")%>×<%=r.getDouble("height_cm")%>cm</td>
-            <td><%=r.getBoolean("fragile")?"Y":"N"%></td>
-            <td><%=r.getString("priority")%></td>
+            <td><strong><%=r.getString("asset_no")%></strong></td>
+            <td><%=r.getString("asset_class")%></td>
+            <td><%=r.getString("item_name")%></td>
+            <td><%=r.getString("model")==null?"-":r.getString("model")%></td>
+            <td><%=r.getString("manage_dept")==null?"-":r.getString("manage_dept")%></td>
+            <td><%=r.getString("manager_name")==null?"-":r.getString("manager_name")%></td>
+            <td><%=r.getString("detail_location")==null?"-":r.getString("detail_location")%></td>
+            <td><%=r.getString("asset_status")==null?"-":r.getString("asset_status")%></td>
           </tr>
-          <%}}catch(Exception e){}finally{close(r,s,c);}%>
+          <%}}catch(Exception e){}finally{try{if(r!=null)r.close();if(s!=null)s.close();if(c!=null)c.close();}catch(Exception e){}}%>
         </tbody>
       </table>
     </div>
