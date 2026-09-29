@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" import="java.sql.*" %>
+<%@ page contentType="text/html; charset=UTF-8" import="java.sql.*,java.util.*" %>
 <%
 request.setCharacterEncoding("UTF-8");
 String msg="", err="";
@@ -29,6 +29,38 @@ if("POST".equalsIgnoreCase(request.getMethod())){
     ps.executeUpdate(); msg="자산이 저장되었습니다.";
   }catch(Exception e){err=e.toString();}finally{try{if(ps!=null)ps.close();if(c!=null)c.close();}catch(Exception e){}}
 }
+
+// 자산 목록 페이징
+String pageStr=request.getParameter("page");int curPage=1,pageSize=20;try{curPage=Integer.parseInt(pageStr);}catch(Exception e){}if(curPage<1)curPage=1;
+List<Map<String,String>> assetList=new ArrayList<>();int totalCount=0,totalPage=1;
+try{
+  Class.forName("com.mysql.cj.jdbc.Driver");
+  Connection conn=DriverManager.getConnection("jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true","root","1234");
+  PreparedStatement ps2=conn.prepareStatement("SELECT COUNT(*) FROM assets");
+  ResultSet rs=ps2.executeQuery();
+  if(rs.next())totalCount=rs.getInt(1);
+  rs.close();ps2.close();
+  totalPage=(int)Math.ceil((double)totalCount/pageSize);if(totalPage<1)totalPage=1;
+  ps2=conn.prepareStatement("SELECT asset_no,asset_class,item_name,model,manage_dept,manager_name,detail_location,asset_status,weight_kg,width_cm,length_cm,height_cm,fragile FROM assets ORDER BY asset_no DESC LIMIT ? OFFSET ?");
+  ps2.setInt(1,pageSize);ps2.setInt(2,(curPage-1)*pageSize);
+  rs=ps2.executeQuery();
+  while(rs.next()){
+    Map<String,String> r=new LinkedHashMap<>();
+    r.put("no",rs.getString("asset_no")==null?"":rs.getString("asset_no"));
+    r.put("cls",rs.getString("asset_class")==null?"":rs.getString("asset_class"));
+    r.put("name",rs.getString("item_name")==null?"":rs.getString("item_name"));
+    r.put("model",rs.getString("model")==null?"-":rs.getString("model"));
+    r.put("dept",rs.getString("manage_dept")==null?"-":rs.getString("manage_dept"));
+    r.put("mgr",rs.getString("manager_name")==null?"-":rs.getString("manager_name"));
+    r.put("loc",rs.getString("detail_location")==null?"-":rs.getString("detail_location"));
+    r.put("st",rs.getString("asset_status")==null?"-":rs.getString("asset_status"));
+    r.put("w",rs.getDouble("weight_kg")>0?rs.getDouble("weight_kg")+"kg":"-");
+    r.put("sz",(rs.getDouble("width_cm")>0?rs.getDouble("width_cm"):"")+"×"+(rs.getDouble("length_cm")>0?rs.getDouble("length_cm"):"")+"×"+(rs.getDouble("height_cm")>0?rs.getDouble("height_cm"):"")+("cm"));
+    r.put("f",rs.getBoolean("fragile")?"Y":"N");
+    assetList.add(r);
+  }
+  rs.close();ps2.close();conn.close();
+}catch(Exception e){}
 %>
 <!DOCTYPE html>
 <html lang="ko">
@@ -486,7 +518,11 @@ a { text-decoration: none; color: inherit; }
   </section>
 
   <section class="borderless-card">
-    <h2 class="h5 mb-4">등록 자산 목록</h2>
+    <div style="margin-bottom: 1.5rem;">
+      <h2 class="h5 m-0" style="display: inline-block;">등록 자산 목록</h2>
+      <span style="font-size: 0.875rem; color: #64748b; margin-left: 0.5rem;">총 <%=String.format("%,d", totalCount)%>건 · 페이지 <%=curPage%>/<%=totalPage%></span>
+    </div>
+
     <div class="table-responsive">
       <table class="table-air">
         <thead>
@@ -502,29 +538,32 @@ a { text-decoration: none; color: inherit; }
           </tr>
         </thead>
         <tbody>
-          <%
-          Connection c=null; Statement s=null; ResultSet r=null;
-          try{
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            c=DriverManager.getConnection("jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true","root","1234");
-            s=c.createStatement();
-            r=s.executeQuery("SELECT asset_no,asset_class,item_name,model,manage_dept,manager_name,detail_location,asset_status FROM assets ORDER BY asset_no DESC LIMIT 50");
-            while(r.next()){
-          %>
+          <%for(Map<String,String> row:assetList){%>
           <tr>
-            <td><strong><%=r.getString("asset_no")%></strong></td>
-            <td><%=r.getString("asset_class")%></td>
-            <td><%=r.getString("item_name")%></td>
-            <td><%=r.getString("model")==null?"-":r.getString("model")%></td>
-            <td><%=r.getString("manage_dept")==null?"-":r.getString("manage_dept")%></td>
-            <td><%=r.getString("manager_name")==null?"-":r.getString("manager_name")%></td>
-            <td><%=r.getString("detail_location")==null?"-":r.getString("detail_location")%></td>
-            <td><%=r.getString("asset_status")==null?"-":r.getString("asset_status")%></td>
+            <td><strong><%=row.get("no")%></strong></td>
+            <td><%=row.get("cls")%></td>
+            <td><%=row.get("name")%></td>
+            <td><%=row.get("model")%></td>
+            <td><%=row.get("dept")%></td>
+            <td><%=row.get("mgr")%></td>
+            <td><%=row.get("loc")%></td>
+            <td><%=row.get("st")%></td>
           </tr>
-          <%}}catch(Exception e){}finally{try{if(r!=null)r.close();if(s!=null)s.close();if(c!=null)c.close();}catch(Exception e){}}%>
+          <%}%>
         </tbody>
       </table>
     </div>
+
+    <!-- 페이지 네비게이션 -->
+    <%if(totalPage>1){%>
+    <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 0.5rem;">
+      <%if(curPage>1){%><a href="resource.jsp?page=<%=curPage-1%>" style="padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; color: #0284c7; text-decoration: none; font-weight: 600;">‹</a><%}%>
+      <%int sp=Math.max(1,curPage-4), ep=Math.min(totalPage, curPage+4); for(int p2=sp; p2<=ep; p2++){%>
+        <a href="resource.jsp?page=<%=p2%>" style="padding: 0.5rem 0.75rem; border: 1px solid <%=p2==curPage?"#0284c7":"#e2e8f0"%>; border-radius: 6px; background: <%=p2==curPage?"#f0f9ff":"transparent"%>; color: <%=p2==curPage?"#0284c7":"#334155"%>; text-decoration: none; font-weight: 600;"><%=p2%></a>
+      <%}%>
+      <%if(curPage<totalPage){%><a href="resource.jsp?page=<%=curPage+1%>" style="padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; color: #0284c7; text-decoration: none; font-weight: 600;">›</a><%}%>
+    </div>
+    <%}%>
   </section>
 
 </main>
