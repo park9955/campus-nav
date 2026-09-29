@@ -1,8 +1,26 @@
 <%@ page contentType="text/html; charset=UTF-8" import="java.sql.*,java.util.*" %>
 <%
+// ---- 접근 권한 체크: 로그인 필요 ----
+String loginUser=(String)session.getAttribute("loginUser");
+String loginRole=(String)session.getAttribute("loginRole");
+if(loginUser==null){ response.sendRedirect("/CAN/campuslogin.jsp"); return; }
+
+boolean isAdmin = "admin".equals(loginRole);
+boolean isProfessor = "professor".equals(loginRole);
+boolean isAssistant = "assistant".equals(loginRole);
+boolean isStudent = "student".equals(loginRole);
+boolean canEdit = isAdmin || isProfessor || isAssistant;
+
+String roleLabel =
+    "student".equals(loginRole)   ? "학부생" :
+    "assistant".equals(loginRole) ? "조교"   :
+    "professor".equals(loginRole) ? "교수"   : "관리자";
+
 request.setCharacterEncoding("UTF-8");
 String msg="", err="";
 if("POST".equalsIgnoreCase(request.getMethod())){
+  if(!canEdit){ err="권한이 없습니다. 관리자, 교수, 조교만 등록/수정이 가능합니다."; }
+  else{
   Connection c=null; PreparedStatement ps=null;
   try{
     Class.forName("com.mysql.cj.jdbc.Driver");
@@ -27,7 +45,8 @@ if("POST".equalsIgnoreCase(request.getMethod())){
     ps.setString(16,request.getParameter("priority"));
     String aq=request.getParameter("acqDate"); if(aq==null||aq.isBlank()) ps.setNull(17,Types.DATE); else ps.setDate(17,java.sql.Date.valueOf(aq));
     ps.executeUpdate(); msg="자산이 저장되었습니다.";
-  }catch(Exception e){err=e.toString();}finally{try{if(ps!=null)ps.close();if(c!=null)c.close();}catch(Exception e){}}
+    }catch(Exception e){err=e.toString();}finally{try{if(ps!=null)ps.close();if(c!=null)c.close();}catch(Exception e){}}
+  }
 }
 
 // 자산 목록 페이징
@@ -405,12 +424,20 @@ a { text-decoration: none; color: inherit; }
     </div>
   </section>
 
-  <section class="form-section">
+  <%if(canEdit){%>
+  <section class="form-section"><%}else{%>
+  <section style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; color: #b45309;"><%}%>
     <h2 class="h5 mb-4">① 자산 등록/수정</h2>
     <%if(!msg.equals("")){%><div class="msg">✓ <%=msg%></div><%}%>
     <%if(!err.equals("")){%><div class="err">✗ <%=err%></div><%}%>
 
-    <form method="post">
+    <%if(!canEdit){%>
+    <div style="font-weight: 600; font-size: 0.95rem; margin-top: 1rem;">
+      <i class="bi bi-exclamation-triangle me-2"></i> 자산 등록/수정은 <strong>관리자, 교수, 조교</strong>만 가능합니다.
+      <div style="margin-top: 0.75rem; font-weight: 400; font-size: 0.875rem;">현재 로그인 권한: <strong><%=roleLabel%></strong></div>
+    </div>
+    <%}%>
+    <form method="post" <%if(!canEdit){%>style="display: none;"<%}%>>
       <div class="form-row">
         <div class="form-group">
           <label>자산 번호</label>
@@ -515,7 +542,11 @@ a { text-decoration: none; color: inherit; }
         <a href="dashboard.jsp" class="btn btn-outline-secondary" style="border-radius: var(--radius-pill); padding: 0.75rem 2rem;">대시보드</a>
       </div>
     </form>
+  <%if(canEdit){%>
   </section>
+  <%}else{%>
+  </section>
+  <%}%>
 
   <section class="borderless-card">
     <div style="margin-bottom: 1.5rem;">
