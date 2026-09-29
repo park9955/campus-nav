@@ -638,14 +638,16 @@ a { text-decoration: none; color: inherit; }
 
       <div class="col-lg-5">
         <div class="hero-side-stats">
-          <div class="stat-item-pill stat-item-blue">
-            <div class="stat-pill-icon"><i class="bi bi-boxes"></i></div>
-            <div class="text-start flex-grow-1">
-              <div class="stat-pill-label">등록 자원</div>
-              <div class="stat-pill-num" style="color: #38bdf8;"><%=resourceCount%>건</div>
+          <a href="resource.jsp" style="text-decoration: none; color: inherit;">
+            <div class="stat-item-pill stat-item-blue" style="cursor: pointer;">
+              <div class="stat-pill-icon"><i class="bi bi-boxes"></i></div>
+              <div class="text-start flex-grow-1">
+                <div class="stat-pill-label">등록 자원</div>
+                <div class="stat-pill-num" style="color: #38bdf8;"><%=resourceCount%>건</div>
+              </div>
+              <i class="bi bi-chevron-right text-muted small"></i>
             </div>
-            <i class="bi bi-chevron-right text-muted small"></i>
-          </div>
+          </a>
 
           <div class="stat-item-pill stat-item-green">
             <div class="stat-pill-icon"><i class="bi bi-geo-alt"></i></div>
