@@ -49,18 +49,36 @@ if("POST".equalsIgnoreCase(request.getMethod())){
   }
 }
 
+// 검색 파라미터
+String searchKeyword=request.getParameter("searchKeyword"); if(searchKeyword==null) searchKeyword="";
+String searchType=request.getParameter("searchType"); if(searchType==null||searchType.equals("")) searchType="all";
+
 // 자산 목록 페이징
 String pageStr=request.getParameter("page");int curPage=1,pageSize=20;try{curPage=Integer.parseInt(pageStr);}catch(Exception e){}if(curPage<1)curPage=1;
 List<Map<String,String>> assetList=new ArrayList<>();int totalCount=0,totalPage=1;
+String whereClause="";
+if(!searchKeyword.isEmpty()){
+  if("all".equals(searchType)){
+    whereClause=" WHERE (a.item_name LIKE '%"+searchKeyword+"%' OR a.asset_no LIKE '%"+searchKeyword+"%' OR a.asset_class LIKE '%"+searchKeyword+"%' OR a.detail_location LIKE '%"+searchKeyword+"%')";
+  } else if("name".equals(searchType)){
+    whereClause=" WHERE a.item_name LIKE '%"+searchKeyword+"%'";
+  } else if("no".equals(searchType)){
+    whereClause=" WHERE a.asset_no LIKE '%"+searchKeyword+"%'";
+  } else if("cls".equals(searchType)){
+    whereClause=" WHERE a.asset_class LIKE '%"+searchKeyword+"%'";
+  } else if("loc".equals(searchType)){
+    whereClause=" WHERE a.detail_location LIKE '%"+searchKeyword+"%'";
+  }
+}
 try{
   Class.forName("com.mysql.cj.jdbc.Driver");
   Connection conn=DriverManager.getConnection("jdbc:mysql://localhost:3306/campusnav?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true","root","1234");
-  PreparedStatement ps2=conn.prepareStatement("SELECT COUNT(*) FROM assets");
+  PreparedStatement ps2=conn.prepareStatement("SELECT COUNT(*) FROM assets a"+whereClause);
   ResultSet rs=ps2.executeQuery();
   if(rs.next())totalCount=rs.getInt(1);
   rs.close();ps2.close();
   totalPage=(int)Math.ceil((double)totalCount/pageSize);if(totalPage<1)totalPage=1;
-  ps2=conn.prepareStatement("SELECT asset_no,asset_class,item_name,model,manage_dept,manager_name,detail_location,asset_status,weight_kg,width_cm,length_cm,height_cm,fragile FROM assets ORDER BY asset_no DESC LIMIT ? OFFSET ?");
+  ps2=conn.prepareStatement("SELECT a.asset_no,a.asset_class,a.item_name,a.model,a.manage_dept,a.manager_name,a.detail_location,a.asset_status,a.weight_kg,a.width_cm,a.length_cm,a.height_cm,a.fragile, COALESCE(DATE_FORMAT(t.transfer_date,'%Y-%m-%d'),'-') as transfer_date FROM assets a LEFT JOIN asset_transfer t ON a.asset_no=t.asset_no AND t.transfer_id=(SELECT MAX(transfer_id) FROM asset_transfer WHERE asset_no=a.asset_no)"+whereClause+" ORDER BY a.asset_no DESC LIMIT ? OFFSET ?");
   ps2.setInt(1,pageSize);ps2.setInt(2,(curPage-1)*pageSize);
   rs=ps2.executeQuery();
   while(rs.next()){
@@ -73,6 +91,7 @@ try{
     r.put("mgr",rs.getString("manager_name")==null?"-":rs.getString("manager_name"));
     r.put("loc",rs.getString("detail_location")==null?"-":rs.getString("detail_location"));
     r.put("st",rs.getString("asset_status")==null?"-":rs.getString("asset_status"));
+    r.put("ts",rs.getString("transfer_date")==null?"-":rs.getString("transfer_date"));
     r.put("w",rs.getDouble("weight_kg")>0?rs.getDouble("weight_kg")+"kg":"-");
     r.put("sz",(rs.getDouble("width_cm")>0?rs.getDouble("width_cm"):"")+"×"+(rs.getDouble("length_cm")>0?rs.getDouble("length_cm"):"")+"×"+(rs.getDouble("height_cm")>0?rs.getDouble("height_cm"):"")+("cm"));
     r.put("f",rs.getBoolean("fragile")?"Y":"N");
@@ -424,6 +443,29 @@ a { text-decoration: none; color: inherit; }
     </div>
   </section>
 
+  <!-- 검색 섹션 -->
+  <section class="borderless-card mb-4">
+    <div style="margin-bottom: 1rem;">
+      <h2 class="h5 m-0">자산 검색</h2>
+    </div>
+    <form method="get" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 200px;">
+        <input type="text" name="searchKeyword" value="<%=searchKeyword%>" placeholder="검색어 입력" style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 4px; font-family: var(--font-main); font-size: 0.95rem;">
+      </div>
+      <div style="width: 150px;">
+        <select name="searchType" style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 4px; font-family: var(--font-main); font-size: 0.95rem;">
+          <option value="all" <%="all".equals(searchType)?"selected":""%>>전체 검색</option>
+          <option value="name" <%="name".equals(searchType)?"selected":""%>>자산명</option>
+          <option value="no" <%="no".equals(searchType)?"selected":""%>>자산번호</option>
+          <option value="cls" <%="cls".equals(searchType)?"selected":""%>>분류</option>
+          <option value="loc" <%="loc".equals(searchType)?"selected":""%>>위치</option>
+        </select>
+      </div>
+      <button type="submit" style="padding: 0.75rem 1.5rem; background: #0284c7; color: #fff; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: var(--font-main);">검색</button>
+      <a href="resource.jsp" style="padding: 0.75rem 1.5rem; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: var(--font-main); text-decoration: none; display: flex; align-items: center;">초기화</a>
+    </form>
+  </section>
+
   <%if(canEdit){%>
   <section class="form-section"><%}else{%>
   <section style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; color: #b45309;"><%}%>
@@ -566,6 +608,7 @@ a { text-decoration: none; color: inherit; }
             <th>담당자</th>
             <th>위치</th>
             <th>상태</th>
+            <th>운송</th>
           </tr>
         </thead>
         <tbody>
@@ -579,6 +622,7 @@ a { text-decoration: none; color: inherit; }
             <td><%=row.get("mgr")%></td>
             <td><%=row.get("loc")%></td>
             <td><%=row.get("st")%></td>
+            <td><a href="/CAN/navigationOptimized.jsp?to=<%=java.net.URLEncoder.encode(row.get("loc"),"UTF-8")%>" class="btn btn-sm btn-outline-primary" style="border-radius: 999px; font-size: 0.85rem;">운송</a></td>
           </tr>
           <%}%>
         </tbody>

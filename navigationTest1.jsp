@@ -348,6 +348,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15p
     <span class="role-chip <%= isAdmin?"admin":"" %>">
       <%= isAdmin?"관리자":"student".equals(loginRole)?"학부생":"assistant".equals(loginRole)?"조교":"professor".equals(loginRole)?"교수":"게스트" %>
     </span>
+    <a href="/CAN/navigationOptimized.jsp" class="chip" title="AI 최적화된 경로 탐색"><i class="bi bi-robot"></i>AI 길찾기</a>
     <a href="/CAN/main_<%= esc(loginRole) %>.jsp" class="chip"><i class="bi bi-house"></i>홈</a>
     <a href="javascript:history.back()" class="chip"><i class="bi bi-arrow-left"></i>뒤로</a>
   </div>

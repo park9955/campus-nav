@@ -488,6 +488,9 @@ a { text-decoration: none; color: inherit; }
 
       <div class="collapse navbar-collapse" id="appNavbar">
         <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 mt-3 mt-lg-0">
+          <li class="nav-item">
+            <a class="nav-link-btn" href="/CAN/navigationOptimized.jsp"><i class="bi bi-lightning-fill"></i> 캠퍼스 AI 최적화</a>
+          </li>
           <li class="nav-item"><a class="nav-link-btn" href="transportRequest.jsp"><i class="bi bi-arrow-repeat"></i> 요청</a></li>
           <li class="nav-item"><a class="nav-link-btn" href="transportStatus.jsp"><i class="bi bi-play-circle"></i> 현황</a></li>
           <li class="nav-item"><a class="nav-link-btn" href="transportHistory.jsp"><i class="bi bi-clock-history"></i> 이력</a></li>
@@ -497,7 +500,9 @@ a { text-decoration: none; color: inherit; }
           <li class="nav-item"><a class="nav-link-btn" href="vehicle.jsp"><i class="bi bi-truck"></i> 운송체 관리</a></li>
           <% } %>
 
-          <li class="nav-item ms-lg-3 my-2 my-lg-0">
+          <li class="nav-item ms-lg-3"><a class="nav-link-btn" href="/CAN/main_<%=loginRole%>.jsp"><i class="bi bi-house"></i> 홈</a></li>
+
+          <li class="nav-item my-2 my-lg-0">
             <div class="user-tag-pill">
               <i class="bi bi-person-circle text-info fs-6"></i>
               <span><%=roleLabel%></span>
@@ -700,6 +705,7 @@ a { text-decoration: none; color: inherit; }
             <td><span class="status-chip chip-ok"><i class="bi bi-check-circle-fill me-1"></i> 진행중</span></td>
             <td class="text-end">
               <a href="#" class="btn btn-sm btn-outline-secondary" style="border-radius: var(--radius-pill);">보기</a>
+              <a href="navigationOptimized.jsp?from=위치 1&to=위치 2&vehicle=AGV" class="btn btn-sm btn-outline-primary" style="border-radius: var(--radius-pill); margin-left: 4px;">AI 경로 분석</a>
             </td>
           </tr>
         </tbody>
