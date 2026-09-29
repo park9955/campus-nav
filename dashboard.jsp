@@ -21,10 +21,10 @@ String roleBadge =
 int resourceCount=0, locationCount=0, vehicleCount=0, requestCount=0;
 Connection con=null; Statement st=null; ResultSet rs=null;
 
-// 등록 자원 조회 (실제 DB 연동)
+// 등록 자원 조회 (실제 DB 연동 - assets 테이블)
 try {
     con=getConnection(); st=con.createStatement();
-    rs=st.executeQuery("SELECT COUNT(*) FROM resources");
+    rs=st.executeQuery("SELECT COUNT(*) FROM assets");
     if(rs.next()) resourceCount=rs.getInt(1);
     rs.close();
 } catch(Exception e) {
