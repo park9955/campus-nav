@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ICT CAN 테스트 시나리오</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .page {
+            max-width: 210mm;
+            height: 297mm;
+            background: white;
+            margin: 0 auto;
+            padding: 15mm;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0284c7;
+            text-align: center;
+            margin-bottom: 3px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 4px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #333;
+            background: #f0f9ff;
+            padding: 4px 6px;
+            margin-top: 6px;
+            margin-bottom: 4px;
+            border-left: 3px solid #0284c7;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 5px;
+            font-size: 9px;
+            line-height: 1.2;
+        }
+
+        th {
+            background: #0284c7;
+            color: white;
+            padding: 3px 4px;
+            text-align: left;
+            font-weight: 600;
+            border: 0.5px solid #0284c7;
+        }
+
+        td {
+            border: 0.5px solid #e0e0e0;
+            padding: 3px 4px;
+            text-align: left;
+        }
+
+        tr:nth-child(even) { background: #fafafa; }
+
+        .role-label {
+            display: inline-block;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+            color: white;
+            font-size: 9px;
+            margin-right: 4px;
+        }
+
+        .student { background: #0284c7; }
+        .assistant { background: #16a34a; }
+        .professor { background: #d97706; }
+        .admin { background: #dc2626; }
+        .visitor { background: #7c3aed; }
+
+        .check-box {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 1px solid #999;
+            margin-right: 2px;
+        }
+
+        .footer {
+            margin-top: 4px;
+            font-size: 8px;
+            color: #999;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 3px;
+            text-align: center;
+        }
+
+        @media print {
+            body { padding: 0; background: white; }
+            .page { box-shadow: none; margin: 0; }
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .compact-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            font-size: 9px;
+            line-height: 1.1;
+        }
+
+        .compact-list li {
+            padding: 1px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h1>🧭 ICT CAN 테스트 시나리오</h1>
+        <div class="subtitle">ICT폴리텍대학 자원 내비게이션 시스템 | 공급자: 시스템 | 이용자: 5명</div>
+
+        <!-- TEST 1 -->
+        <div class="section-title"><span class="role-label student">TEST 1</span> 학부생</div>
+        <table>
+            <tr><th style="width:8%">순</th><th style="width:46%">작업</th><th>기대 결과</th></tr>
+            <tr><td>1</td><td>학부생 버튼 클릭</td><td>로그인 창 나타남</td></tr>
+            <tr><td>2</td><td>아이디/비밀번호 입력 → 로그인</td><td>학부생 홈 화면 열림</td></tr>
+            <tr><td>3</td><td>자원 수 확인</td><td>8,401개 보임</td></tr>
+            <tr><td>4</td><td>자원 검색 메뉴 클릭</td><td>자원 목록 나타남 (20개씩)</td></tr>
+            <tr><td>5</td><td>검색어 입력 또는 분류 선택</td><td>조건에 맞는 자원만 보임</td></tr>
+            <tr><td>6</td><td>자원 클릭</td><td>상세정보·지도·이전 기록·신청 폼 보임</td></tr>
+            <tr><td>7</td><td>신청 폼 입력 → 신청</td><td>신청 완료 또는 중복 경고</td></tr>
+            <tr><td>8</td><td>자원 옮긴 기록 메뉴</td><td>옮긴 자원 목록 보임</td></tr>
+            <tr><td>9</td><td>로그아웃 클릭</td><td>로그인 화면으로 돌아감</td></tr>
+        </table>
+
+        <!-- TEST 2 -->
+        <div class="section-title"><span class="role-label assistant">TEST 2</span> 조교</div>
+        <table>
+            <tr><th style="width:8%">순</th><th style="width:46%">작업</th><th>기대 결과</th></tr>
+            <tr><td>1</td><td>조교 버튼 클릭 → 로그인</td><td>조교 홈 화면 열림</td></tr>
+            <tr><td>2</td><td>자원 검색·분류·신청 (학부생과 동일)</td><td>잘 작동함</td></tr>
+            <tr><td>3</td><td>교수 정보 메뉴 클릭</td><td>교수 카드 목록 (담당 과목·스킬 보임)</td></tr>
+            <tr><td>4</td><td>교수 카드 선택 → 정보 수정</td><td>과목/스킬 추가·삭제 가능</td></tr>
+            <tr><td>5</td><td>자원 옮긴 기록 메뉴</td><td>옮긴 목록 및 옮기기 기능</td></tr>
+            <tr><td>6</td><td>로그아웃</td><td>로그인 화면으로 돌아감</td></tr>
+        </table>
+
+        <!-- TEST 3 -->
+        <div class="section-title"><span class="role-label professor">TEST 3</span> 교수</div>
+        <table>
+            <tr><th style="width:8%">순</th><th style="width:46%">작업</th><th>기대 결과</th></tr>
+            <tr><td>1</td><td>교수 버튼 클릭 → 로그인</td><td>교수 홈 화면 열림</td></tr>
+            <tr><td>2</td><td>자원 검색·분류·신청 (학부생과 동일)</td><td>잘 작동함</td></tr>
+            <tr><td>3</td><td>내 정보 메뉴 클릭</td><td>담당 과목·스킬 정보 보임</td></tr>
+            <tr><td>4</td><td>정보 수정 → 과목/스킬 입력 → 저장</td><td>과목/스킬 추가·삭제되고 저장됨</td></tr>
+            <tr><td>5</td><td>자원 옮긴 기록 메뉴</td><td>옮긴 자원 목록 보임</td></tr>
+            <tr><td>6</td><td>로그아웃</td><td>로그인 화면으로 돌아감</td></tr>
+        </table>
+
+        <!-- TEST 4 -->
+        <div class="section-title"><span class="role-label admin">TEST 4</span> 관리자</div>
+        <table>
+            <tr><th style="width:8%">순</th><th style="width:46%">작업</th><th>기대 결과</th></tr>
+            <tr><td>1</td><td>관리자 버튼 클릭 → 로그인</td><td>관리자 홈 화면 열림</td></tr>
+            <tr><td>2</td><td>자원 관리 메뉴</td><td>자원 목록 (8,401개), 추가/수정/삭제 버튼</td></tr>
+            <tr><td>3</td><td>추가 → 정보 입력 → 저장</td><td>새 자원이 목록에 추가됨</td></tr>
+            <tr><td>4</td><td>자원 선택 → 수정 → 정보 변경 → 저장</td><td>변경사항이 바로 반영됨</td></tr>
+            <tr><td>5</td><td>자원 선택 → 삭제 → 확인</td><td>자원이 목록에서 지워짐</td></tr>
+            <tr><td>6</td><td>상태/분류로 검색</td><td>조건에 맞는 자원만 보임</td></tr>
+            <tr><td>7</td><td>로그아웃</td><td>로그인 화면으로 돌아감</td></tr>
+        </table>
+
+        <!-- TEST 5 -->
+        <div class="section-title"><span class="role-label visitor">TEST 5</span> 외부인</div>
+        <table>
+            <tr><th style="width:8%">순</th><th style="width:46%">작업</th><th>기대 결과</th></tr>
+            <tr><td>1</td><td>외부인 버튼 클릭</td><td>사용 안내 팝업 보임</td></tr>
+            <tr><td>2</td><td>외부인으로 입장 클릭</td><td>로그인 없이 들어가짐</td></tr>
+            <tr><td>3</td><td>공간 예약 → 정보 입력 → 신청</td><td>예약 완료됨</td></tr>
+            <tr><td>4</td><td>길찾기 메뉴</td><td>지도·길찾기 기능</td></tr>
+            <tr><td>5</td><td>자원 검색 클릭 시도</td><td>사용 불가 메시지</td></tr>
+            <tr><td>6</td><td>자원 상세 직접 접근</td><td>접근 차단 안내</td></tr>
+            <tr><td>7</td><td>로그인 화면으로 돌아가기</td><td>로그인 화면 나타남</td></tr>
+        </table>
+
+        <div class="footer">
+            ICT CAN 테스트 시나리오 | 2026년 10월 | A4 한장 | 각 역할별 사용자가 이 시나리오를 따라 테스트하면 전체 기능을 검증할 수 있습니다.
+        </div>
+    </div>
+</body>
+</html>
